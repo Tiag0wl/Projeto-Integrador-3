@@ -2134,9 +2134,12 @@ export default function App() {
                     <MapPin className="w-4 h-4" /> Ver relatos próximos
                   </button>
 
-                  <button className="border border-white/40 px-5 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2">
+                    <button 
+                  onClick={() => setCurrentPage("safety")}
+                  className="border border-white/40 px-5 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2">
                     <Shield className="w-4 h-4" /> Orientações
                   </button>
+
                 </div>
               </div>
             </div>
