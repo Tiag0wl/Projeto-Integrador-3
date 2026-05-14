@@ -165,7 +165,7 @@ const awarenessMessages = [
 // Mock data - Notícias com links reais
 const mockNews = [
   {
-     id: 1,
+   id: 1,
     title:
       "Rio Grande do Sul enfrenta crise climática sem precedentes",
     date: "30/04/2026",
@@ -235,7 +235,6 @@ const mockNews = [
     link: "https://www1.folha.uol.com.br/",
   },
 ];
-
 
 // Mock data - Documentos
 const mockDocuments = [
