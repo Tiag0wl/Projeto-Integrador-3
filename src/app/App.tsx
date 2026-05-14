@@ -165,7 +165,7 @@ const awarenessMessages = [
 // Mock data - Notícias com links reais
 const mockNews = [
   {
-    id: 1,
+     id: 1,
     title:
       "Rio Grande do Sul enfrenta crise climática sem precedentes",
     date: "30/04/2026",
@@ -173,7 +173,7 @@ const mockNews = [
       "Cientistas alertam que eventos climáticos extremos estão se tornando mais frequentes devido às mudanças climáticas.",
     category: "Crítico",
     image:
-      "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?w=800&h=400&fit=crop",
+      "https://www.rbsdirect.com.br/filestore/9/9/3/5/1/8/4_b0d04c209676f2a/4815399_930663d2638e420.jpeg?version=1575255600",
     link: "https://g1.globo.com/rs/rio-grande-do-sul/",
   },
   {
@@ -184,7 +184,7 @@ const mockNews = [
       "Previsão indica chuvas intensas e ventos fortes para os próximos dias em várias regiões gaúchas.",
     category: "Alerta",
     image:
-      "https://images.unsplash.com/photo-1561553543-419c4e6f1b36?w=800&h=400&fit=crop",
+      "https://agoranovale.com.br/wp-content/uploads/2025/03/temporal-agoranovale.jpeg.webp",
     link: "https://www.clicrbs.com.br/rs",
   },
   {
@@ -196,7 +196,7 @@ const mockNews = [
       "Dados da ONU mostram crescimento alarmante de eventos climáticos extremos no Brasil.",
     category: "Análise",
     image:
-      "https://images.unsplash.com/photo-1569163139394-de4798aa62b0?w=800&h=400&fit=crop",
+      "https://odia.ig.com.br/_midias/jpg/2022/02/17/petropolis_tragedia-24341338.jpg",
     link: "https://www.bbc.com/portuguese",
   },
   {
@@ -207,7 +207,7 @@ const mockNews = [
       "Aquecimento dos oceanos intensifica fenômenos meteorológicos no litoral do RS.",
     category: "Alerta",
     image:
-      "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&h=400&fit=crop",
+      "https://img.odcdn.com.br/wp-content/uploads/2024/08/ciclone-extratropical-1-scaled.jpg",
     link: "https://gauchazh.clicrbs.com.br/",
   },
   {
@@ -231,7 +231,7 @@ const mockNews = [
       "Mudanças climáticas tornarão tempestades, secas e ondas de calor mais frequentes e intensas.",
     category: "Análise",
     image:
-      "https://images.unsplash.com/photo-1504333638930-c8787321eee0?w=800&h=400&fit=crop",
+      "https://conteudo.imguol.com.br/c/noticias/c9/2025/01/09/8jan2025---uma-casa-queima-em-los-angeles-devido-aos-incendios-florestais-que-atingem-a-california-1736432964733_v2_615x300.jpg",
     link: "https://www1.folha.uol.com.br/",
   },
 ];
