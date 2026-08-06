@@ -1871,14 +1871,14 @@ export default function App() {
 
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7x1 mx-40 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-25">
             {/* Logo */}
             <div className="flex items-center gap-3">
               <ImageWithFallback
                 src="src/imports/Logo.jpeg"
                 alt="Logotipo"
-                className="h-10 w-auto"
+                className="h-19 w-auto"
               />
             </div>
 
@@ -1891,8 +1891,8 @@ export default function App() {
                   : "hover:bg-gray-50"
                   }`}
               >
-                <Home className="w-4 h-4" />
-                Início
+                <Home className="w-6 h-7" />
+                <h2>Início</h2>
               </button>
               <button
                 onClick={() => setCurrentPage("safety")}
@@ -1901,8 +1901,8 @@ export default function App() {
                   : "hover:bg-gray-50"
                   }`}
               >
-                <Shield className="w-4 h-4" />
-                Orientações
+                <Shield className="w-6 h-7" />
+                <h2>Orientações</h2>
               </button>
               <button
                 onClick={() => setCurrentPage("documents")}
@@ -1911,8 +1911,8 @@ export default function App() {
                   : "hover:bg-gray-50"
                   }`}
               >
-                <FileText className="w-4 h-4" />
-                Documentos
+                <FileText className="w-6 h-7" />
+                <h2>Documentos</h2>
               </button>
               <button
                 onClick={() => setCurrentPage("social")}
@@ -1921,8 +1921,8 @@ export default function App() {
                   : "hover:bg-gray-50"
                   }`}
               >
-                <Users className="w-4 h-4" />
-                Rede Social
+                <Users className="w-6 h-7" />
+                <h2>Rede Social</h2>
               </button>
             </nav>
 
@@ -1937,7 +1937,7 @@ export default function App() {
                       : "hover:bg-gray-100"
                       }`}
                   >
-                    <Bell className={`w-5 h-5 transition-colors duration-200 ${showNotifications
+                    <Bell className={`w-6 h-7 transition-colors duration-200 ${showNotifications
                       ? "text-gray-800"
                       : "text-gray-600"
                       }`} />
@@ -1950,10 +1950,10 @@ export default function App() {
                     onClick={() => setCurrentPage("profile")}
                     className="flex items-center gap-2 hover:bg-gray-100 rounded-full p-2 transition-colors"
                   >
-                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
                       {user?.user_metadata?.display_name?.charAt(0).toUpperCase() || "U"}
                     </div>
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-lg font-size: 24px text-gray-700">
                       {user?.user_metadata?.display_name?.split(" ")[0] || "Usuário"}
                     </span>
                   </button>
@@ -2390,7 +2390,7 @@ export default function App() {
             </div>
 
             {/* Reports Grid */}
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 transition-all duration-200 ${isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 transition-all duration-200 ${isAnimating ? "opacity-0 scale-95" : "opacity-100 scale-100"
               }`}>
               {filteredReports.length > 0 ? (
                 filteredReports.slice(0, reportsLimit).map((report) => (
@@ -4142,16 +4142,15 @@ export default function App() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Estado
                     </label>
-                    <select
+                    <CustomDropdown
                       value={occurrenceForm.state}
-                      onChange={(e) => setOccurrenceForm({ ...occurrenceForm, state: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    >
-                      <option value="">Selecione</option>
-                      <option value="RS">RS</option>
-                      <option value="SC">SC</option>
-                      <option value="PR">PR</option>
-                    </select>
+                      onChange={(e) => setOccurrenceForm({ ...occurrenceForm, state: e })}
+                      options={[
+                        { value: "RS", label: "Rio Grande do Sul" },
+                        { value: "SC", label: "Santa Catarina" },
+                        { value: "PR", label: "Paraná" },
+                      ]}
+                    />
                   </div>
                 </div>
 
@@ -4164,7 +4163,6 @@ export default function App() {
                       value={occurrenceForm.type}
                       onChange={(value) => setOccurrenceForm({ ...occurrenceForm, type: value })}
                       options={[
-                        { value: "", label: "Selecione..." },
                         { value: "Enchente", label: "Enchente" },
                         { value: "Tempestade", label: "Tempestade" },
                         { value: "Granizo", label: "Granizo" },
@@ -4184,7 +4182,6 @@ export default function App() {
                       value={occurrenceForm.severity}
                       onChange={(value) => setOccurrenceForm({ ...occurrenceForm, severity: value })}
                       options={[
-                        { value: "", label: "Selecione..." },
                         { value: "Perigo Baixo", label: "Perigo Baixo" },
                         { value: "Perigo Médio", label: "Perigo Médio" },
                         { value: "Perigo Alto", label: "Perigo Alto" },
