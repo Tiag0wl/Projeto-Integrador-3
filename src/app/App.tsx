@@ -1018,7 +1018,7 @@ const DecorativeShapes = () => (
       <div className="absolute top-0 left-0 w-full h-full bg-yellow-400/15 rounded-tr-full"></div>
     </div>
 
-    <div className="fixed top-[55%] right-[32%] w-38 h-38 pointer-events-none z-0">
+    <div className="fixed top-[40%] right-[33%] w-38 h-38 pointer-events-none z-0">
       <div className="absolute top-0 right-0 w-full h-full bg-green-500/8 rounded-tl-full"></div>
     </div>
 
@@ -1026,8 +1026,8 @@ const DecorativeShapes = () => (
       <div className="absolute bottom-0 left-0 w-full h-full bg-red-500/10 rounded-br-full"></div>
     </div>
 
-    <div className="fixed bottom-[22%] right-[22%] w-34 h-34 pointer-events-none z-0">
-      <div className="absolute bottom-0 right-0 w-full h-full bg-red-500/10 rounded-tl-full"></div>
+    <div className="fixed bottom-[24%] right-[26%] w-34 h-34 pointer-events-none z-0">
+      <div className="absolute bottom-0 right-0 w-full h-full bg-yellow-400/15 rounded-tl-full"></div>
     </div>
 
     <div className="fixed top-[68%] left-[15%] w-36 h-36 pointer-events-none z-0">
@@ -1038,12 +1038,12 @@ const DecorativeShapes = () => (
       <div className="absolute top-0 left-0 w-full h-full bg-green-500/8 rounded-bl-full"></div>
     </div>
 
-    <div className="fixed top-[32%] right-[8%] w-28 h-28 pointer-events-none z-0">
-      <div className="absolute top-0 right-0 w-full h-full bg-yellow-400/15 rounded-br-full"></div>
+    <div className="fixed top-[45%] right-[10%] w-34 h-34 pointer-events-none z-0">
+      <div className="absolute top-0 right-0 w-full h-full bg-green-500/8 rounded-br-full"></div>
     </div>
 
-    <div className="fixed bottom-[45%] left-[58%] w-36 h-36 pointer-events-none z-0">
-      <div className="absolute bottom-0 left-0 w-full h-full bg-red-500/10 rounded-tl-full"></div>
+    <div className="fixed bottom-[67%] left-[50%] w-36 h-36 pointer-events-none z-0">
+      <div className="absolute bottom-0 left-0 w-full h-full bg-yellow-400/15 rounded-tl-full"></div>
     </div>
 
     <div className="fixed top-[85%] right-[15%] w-30 h-30 pointer-events-none z-0">
