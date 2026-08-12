@@ -1052,7 +1052,7 @@ const DecorativeShapes = () => (
   </>
 );
 
-type PageType = "home" | "social" | "safety" | "documents" | "login" | "profile" | "add-occurrence";
+type PageType = "home" | "social" | "safety" | "documents" | "login" | "profile" | "add-occurrence" | "add-report";
 
 export default function App() {
   const { user, loading, signUp, signIn, signOut } = useAuth();
@@ -1976,7 +1976,7 @@ export default function App() {
 
         {/* Página de Login/Cadastro */}
         {currentPage === "login" && (
-          <div className="min-h-screen flex items-center justify-center">
+          <div className="pt-30 pb-12 px-4 flex items-center justify-center">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-md w-full">
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-[#089448] rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -2623,7 +2623,7 @@ export default function App() {
                 </button>
 
                 <button
-                  onClick={() => setShowAddModal2(true)}
+                  onClick={() => user ? setCurrentPage("add-report") : setCurrentPage("login")}
                   className="ml-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium"
                 >
                   + Adicionar meu relato
@@ -4360,10 +4360,6 @@ export default function App() {
                     <Mail className="w-4 h-4" />
                     {user?.email || "email@exemplo.com"}
                   </p>
-                  <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                    <Calendar className="w-4 h-4" />
-                    Membro desde 21/04/2026
-                  </p>
                 </div>
                 <button
                   onClick={() => signOut()}
@@ -4536,206 +4532,10 @@ export default function App() {
         {/* End Main Content */}
         <div>
           {/* Add Report Modal */}
-          {showAddModal && (
-            <div className="fixed inset-0 flex items-start justify-center p-4 pt-10 z-40 overflow-y-auto">
-              <div className="bg-white border-1 border-gray-400 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] max-w-2xl w-full px-[24px] py-[20px] mx-[0px] my-[5px]">
-                <h2 className="text-2xl font-bold mb-2 text-left">
-                  Adicionar ocorrência
-                </h2>
-
-                <p className="text-sm text-gray-600 mb-6">
-                  Primeiro, verifique se já existe uma ocorrência
-                  registrada sobre este evento
-                </p>
-
-                {/* Ocorrências próximas */}
-                <div className="border border-[#ffcb04] rounded-lg p-4 mb-6 bg-[#fffbdf]">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2 text-[#ff9900] text-[#ffa200]">
-                    <AlertTriangle className="w-4 h-4" />
-                    Ocorrências próximas a você agora
-                  </h3>
-
-
-                  <div className="space-y-2 max-h-40 overflow-y-auto border-2 border-[#dce1d9] rounded-[5px] p-2 custom-scroll bg-[#ffffff]">
-                    {sortedReports.slice(0, 3).map((report) => (
-                      <button
-                        key={report.id}
-                        onClick={() => {
-                          setShowAddModal(false);
-                          setSelectedOccurrence(report);
-                        }}
-                        className="w-full text-left p-3 bg-white rounded-md hover:bg-gray-50 transition-colors border border-[#ffcb04] bg-[#fffbdf]"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <p className="font-semibold text-sm">
-                              {report.type}
-                            </p>
-                            <p className="text-xs text-gray-600">
-                              {report.location}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {report.date}
-                            </p>
-                          </div>
-                          <span
-                            className={`text-xs px-2 py-1 rounded ${report.severityColor} text-white`}
-                          >
-                            {report.severity}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-
-                  <p className="text-xs mt-3 text-[#ffa200]">
-                    {" "}
-                    Se o evento que você quer relatar está listado
-                    acima, clique nele para adicionar seu relato
-                  </p>
-                </div>
-
-                {/* Formulário */}
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="font-semibold mb-4">
-                    Ou crie uma nova ocorrência
-                  </h3>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Tipo de ocorrência:
-                      </label>
-                      <select className="w-full px-3 py-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
-                        <option>Selecione...</option>
-                        <option>GRANIZO</option>
-                        <option>ALAGAMENTO</option>
-                        <option>VENDAVAL</option>
-                        <option>TEMPESTADE</option>
-                        <option>ENCHENTE</option>
-                        <option>DESLIZAMENTO</option>
-                        <option>CICLONE</option>
-                      </select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Cidade:
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Digite"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Bairro:
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Digite"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nível de perigo:
-                      </label>
-                      <select className="w-full px-3 py-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
-                        <option>Perigo Baixo</option>
-                        <option>Perigo Médio</option>
-                        <option>Perigo Alto</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Descrição:
-                      </label>
-                      <textarea
-                        rows={4}
-                        placeholder="Descreva o que está acontecendo..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Fotos (opcional)
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-gray-400 transition-colors">
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                        id="file-upload-modal1"
-                      />
-                      <label htmlFor="file-upload-modal1" className="cursor-pointer">
-                        <Camera className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600">
-                          Clique para adicionar fotos ou arraste para cá
-                        </p>
-                      </label>
-                    </div>
-
-                    {attachedFiles.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        <p className="text-sm font-medium text-gray-700">
-                          Arquivos anexados ({attachedFiles.length}):
-                        </p>
-                        {attachedFiles.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                            <span className="text-sm text-gray-600 truncate flex-1">
-                              {file.name}
-                            </span>
-                            <button
-                              onClick={() => removeFile(index)}
-                              className="ml-2 text-red-500 hover:text-red-700 text-sm"
-                            >
-                              Remover
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end gap-3 mt-6">
-                    <button
-                      onClick={() => setShowAddModal(false)}
-                      className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        // Simulate creating a new report
-                        const newId = Math.max(...reports.map(r => r.id), 0) + 1;
-                        setNewReports(prev => [...prev, newId]);
-                        setShowAddModal(false);
-                      }}
-                      className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
-                    >
-                      Concluir
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
+         
           {/* SEGUNDO MODAL */}
-          {showAddModal2 && (
-            <div className="fixed inset-0 flex items-start justify-center p-4 pt-10 z-40 overflow-y-auto">
+          {currentPage === "add-report" && (
+            <div className="fixed inset-20 flex items-start justify-center p-4 pt-10 z-40 overflow-y-auto">
               <div className="bg-white border-2 border-gray-400 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] max-w-2xl w-full px-[24px] py-[20px] mx-[0px] my-[5px]">
                 <h2 className="text-2xl font-bold mb-2 text-left">
                   Adicionar Relato
@@ -4802,7 +4602,9 @@ export default function App() {
 
                 <div className="flex justify-end gap-3 mt-6">
                   <button
-                    onClick={() => setShowAddModal2(false)}
+                    onClick={() => setCurrentPage("social")}
+
+
                     className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Cancelar
