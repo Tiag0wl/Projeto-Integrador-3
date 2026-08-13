@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReportsMasonry from "./components/ReportsMasonry";
 import {
   Bell,
   Home,
@@ -165,7 +166,7 @@ const awarenessMessages = [
 // Mock data - Notícias com links reais
 const mockNews = [
   {
-   id: 1,
+    id: 1,
     title:
       "Rio Grande do Sul enfrenta crise climática sem precedentes",
     date: "30/04/2026",
@@ -2133,9 +2134,9 @@ export default function App() {
                     <MapPin className="w-4 h-4" /> Ver relatos próximos
                   </button>
 
-                    <button 
-                  onClick={() => setCurrentPage("safety")}
-                  className="border border-white/40 px-5 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage("safety")}
+                    className="border border-white/40 px-5 py-2 rounded-lg hover:bg-white/10 transition flex items-center gap-2">
                     <Shield className="w-4 h-4" /> Orientações
                   </button>
 
@@ -2170,7 +2171,7 @@ export default function App() {
               </div>
             </div>
 
-           
+
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-white p-6 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] border-l-4 border-red-500 bg-[#f2f2f2]">
@@ -2227,13 +2228,12 @@ export default function App() {
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-3">
                         <span
-                          className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                            news.category === "Crítico"
+                          className={`text-xs font-semibold px-3 py-1 rounded-full ${news.category === "Crítico"
                               ? "bg-red-100 text-red-700"
                               : news.category === "Alerta"
                                 ? "bg-orange-100 text-orange-700"
                                 : "bg-blue-100 text-blue-700"
-                          }`}
+                            }`}
                         >
                           {news.category}
                         </span>
@@ -2277,7 +2277,7 @@ export default function App() {
             </div>
           </div>
         )}
-        
+
 
         {currentPage === "social" && !selectedOccurrence && (
           <div>
@@ -2586,8 +2586,8 @@ export default function App() {
                     handleUsefulClick(selectedOccurrence.id);
                   }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors text-sm ${usefulReports[selectedOccurrence.id]
-                      ? "bg-green-200 text-green-700 hover:bg-green-200"
-                      : "bg-green-100 text-green-700 hover:bg-green-200"
+                    ? "bg-green-200 text-green-700 hover:bg-green-200"
+                    : "bg-green-100 text-green-700 hover:bg-green-200"
                     }`}
                 >
                   <ThumbsUp className={`w-4 h-4 ${usefulReports[selectedOccurrence.id] ? "fill-green-600" : ""}`} />
@@ -2599,8 +2599,8 @@ export default function App() {
                     handleNotUsefulClick(selectedOccurrence.id);
                   }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors text-sm ${notUsefulReports[selectedOccurrence.id]
-                      ? "bg-red-200 text-red-700 hover:bg-red-200"
-                      : "bg-red-100 text-red-700 hover:bg-red-200"
+                    ? "bg-red-200 text-red-700 hover:bg-red-200"
+                    : "bg-red-100 text-red-700 hover:bg-red-200"
                     }`}
                 >
                   <ThumbsDown className={`w-4 h-4 ${notUsefulReports[selectedOccurrence.id] ? "fill-red-600" : ""}`} />
@@ -2612,8 +2612,8 @@ export default function App() {
                     toggleFavorite(selectedOccurrence.id);
                   }}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors text-sm ${favorites.includes(selectedOccurrence.id)
-                      ? "bg-yellow-200 text-yellow-700 hover:bg-yellow-200"
-                      : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                    ? "bg-yellow-200 text-yellow-700 hover:bg-yellow-200"
+                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                     }`}
                 >
                   <Star
@@ -2631,230 +2631,27 @@ export default function App() {
               </div>
             </div>
 
+
+
+
             {/* Grid de Relatos - 2 colunas */}
-            <div>
-              <h2 className="text-xl font-bold mb-4">
-                Relatos ({selectedOccurrence.others + 1})
-              </h2>
-              <div className="flex flex-col gap-4">
-                {/* Relato principal sempre no topo */}
-
-                <div className="bg-white border-gray-300 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] p-4 border-l-4 border-green-500 bg-[#f5f5f5]">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className={`w-10 h-10 ${getProfileColor(selectedOccurrence.user)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-lg font-bold">
-                        {getInitial(selectedOccurrence.user)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-semibold text-sm truncate">
-                          {selectedOccurrence.user}
-                        </p>
-                        <span className="text-xs text-gray-500">
-                          • há 2h
-                        </span>
-                      </div>
-                      <p className="text-xs text-green-600 font-medium">
-                        Relato principal da ocorrência
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-gray-700 mb-3">
-                    {selectedOccurrence.type === "GRANIZO"
-                      ? "Granizo intenso atingiu a região. Pedras grandes causaram danos em veículos e telhados."
-                      : selectedOccurrence.type === "ALAGAMENTO"
-                        ? "Ruas completamente alagadas. Água chegou a 50cm de altura em alguns pontos."
-                        : selectedOccurrence.type === "VENDAVAL"
-                          ? "Ventos muito fortes derrubaram árvores e placas. Muito perigoso."
-                          : `${selectedOccurrence.type.toLowerCase()} afetou toda a região. Situação crítica.`}
-                  </p>
-
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                      <Camera className="w-5 h-5" />
-                    </div>
-                    <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                      <ImageIcon className="w-5 h-5" />
-                    </div>
-                    <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                      <Video className="w-5 h-5" />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 text-sm pt-3 border-t border-gray-100">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleIndividualReportLike(`${selectedOccurrence.id}-main`);
-                      }}
-                      className={`flex items-center gap-1 rounded-md px-2 py-1 text-sm transition ${userIndividualReportLikes[`${selectedOccurrence.id}-main`] ? "bg-green-100 text-green-700" : "text-gray-600 hover:text-green-700 hover:bg-green-50"}`}
-                    >
-                      <ThumbsUp className="w-4 h-4" />
-                      <span>{reportLikes[`${selectedOccurrence.id}-main`] ?? selectedOccurrence.likes}</span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleIndividualReportDislike(`${selectedOccurrence.id}-main`);
-                      }}
-                      className={`flex items-center gap-1 rounded-md px-2 py-1 text-sm transition ${userIndividualReportDislikes[`${selectedOccurrence.id}-main`] ? "bg-red-100 text-red-700" : "text-gray-600 hover:text-red-700 hover:bg-red-50"}`}
-                    >
-                      <ThumbsDown className="w-4 h-4" />
-                      <span>{reportDislikes[`${selectedOccurrence.id}-main`] ?? selectedOccurrence.dislikes}</span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(selectedOccurrence.id);
-                      }}
-                      className={`ml-auto text-gray-400 hover:text-yellow-500 transition-colors ${isOccurrenceFavorited(selectedOccurrence.id) ? "text-yellow-500" : ""}`}
-                    >
-                      <Star
-                        className={`w-4 h-4 ${isOccurrenceFavorited(selectedOccurrence.id) ? "fill-yellow-500 text-yellow-500" : ""}`}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Favoritos vão aparecer logo depois do relato principal */}
-                {favoriteSelectedOccurrenceSubreports.map((report) => (
-                  <div key={report.key} className="bg-white rounded-lg shadow-sm p-4 bg-[#f5f5f5] flex flex-col h-full">
-
-
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className={`w-10 h-10 ${getProfileColor(report.author)} rounded-full flex items-center justify-center`}>
-                        <span className="text-white text-lg font-bold">
-                          {getInitial(report.author)}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold text-sm truncate">{report.author}</p>
-                          <span className="text-xs text-gray-500">• há 2h</span>
-                        </div>
-                        <p className="text-xs text-yellow-600 font-medium">Favorito</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-3">{report.description}</p>
-                    {report.hasMedia && (
-                      <div className="grid grid-cols-3 gap-2 mb-3">
-                        <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                          <Camera className="w-5 h-5" />
-                        </div>
-                        <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                          <ImageIcon className="w-5 h-5" />
-                        </div>
-                        <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                          <Video className="w-5 h-5" />
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2 text-sm pt-3 border-t border-gray-100">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleIndividualReportLike(report.key);
-                        }}
-                        className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportLikes[report.key] ? "bg-green-100 text-green-700" : "text-gray-600 hover:text-green-700 hover:bg-green-50"}`}
-                      >
-                        <ThumbsUp className="w-4 h-4" />
-                        <span>{report.likes}</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleIndividualReportDislike(report.key);
-                        }}
-                        className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportDislikes[report.key] ? "bg-red-100 text-red-700" : "text-gray-600 hover:text-red-700 hover:bg-red-50"}`}
-                      >
-                        <ThumbsDown className="w-4 h-4" />
-                        <span>{report.dislikes}</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleIndividualFavoriteReport(report.key);
-                        }}
-                        className={`ml-auto text-gray-400 hover:text-yellow-500 transition-colors ${individualFavoriteReports[report.key] ? "text-yellow-500" : ""}`}
-                      >
-                        <Star className={`w-4 h-4 ${individualFavoriteReports[report.key] ? "fill-yellow-500 text-yellow-500" : ""}`} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {regularSelectedOccurrenceSubreports.map((report) => (
-                  <div key={report.key} className="bg-white rounded-lg shadow-sm p-4 bg-[#f5f5f5]">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className={`w-10 h-10 ${getProfileColor(report.author)} rounded-full flex items-center justify-center`}>
-                        <span className="text-white text-lg font-bold">
-                          {getInitial(report.author)}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold text-sm truncate">{report.author}</p>
-                          <span className="text-xs text-gray-500">• há 2h</span>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-3">{report.description}</p>
-                    {report.hasMedia && (
-                      <div className="grid grid-cols-3 gap-2 mb-3">
-                        <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                          <Camera className="w-5 h-5" />
-                        </div>
-                        <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                          <ImageIcon className="w-5 h-5" />
-                        </div>
-                        <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                          <Video className="w-5 h-5" />
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2 text-sm pt-3 border-t border-gray-100">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleIndividualReportLike(report.key);
-                        }}
-                        className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportLikes[report.key] ? "bg-green-100 text-green-700" : "text-gray-600 hover:text-green-700 hover:bg-green-50"}`}
-                      >
-                        <ThumbsUp className="w-4 h-4" />
-                        <span>{report.likes}</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleIndividualReportDislike(report.key);
-                        }}
-                        className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportDislikes[report.key] ? "bg-red-100 text-red-700" : "text-gray-600 hover:text-red-700 hover:bg-red-50"}`}
-                      >
-                        <ThumbsDown className="w-4 h-4" />
-                        <span>{report.dislikes}</span>
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleIndividualFavoriteReport(report.key);
-                        }}
-                        className={`ml-auto text-gray-400 hover:text-yellow-500 transition-colors ${individualFavoriteReports[report.key] ? "text-yellow-500" : ""}`}
-                      >
-                        <Star className={`w-4 h-4 ${individualFavoriteReports[report.key] ? "fill-yellow-500 text-yellow-500" : ""}`} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {selectedOccurrence.others > 11 && (
-                <button className="w-full mt-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium transition-colors">
-                  Carregar mais {selectedOccurrence.others - 11} relatos
-                </button>
-              )}
-            </div>
+            <ReportsMasonry
+              selectedOccurrence={selectedOccurrence}
+              favoriteSelectedOccurrenceSubreports={favoriteSelectedOccurrenceSubreports}
+              regularSelectedOccurrenceSubreports={regularSelectedOccurrenceSubreports}
+              reportLikes={reportLikes}
+              reportDislikes={reportDislikes}
+              userIndividualReportLikes={userIndividualReportLikes}
+              userIndividualReportDislikes={userIndividualReportDislikes}
+              individualFavoriteReports={individualFavoriteReports}
+              handleIndividualReportLike={handleIndividualReportLike}
+              handleIndividualReportDislike={handleIndividualReportDislike}
+              toggleIndividualFavoriteReport={toggleIndividualFavoriteReport}
+              toggleFavorite={toggleFavorite}
+              isOccurrenceFavorited={isOccurrenceFavorited}
+              getProfileColor={getProfileColor}
+              getInitial={getInitial}
+            />
           </div>
         )}
 
@@ -3243,7 +3040,7 @@ export default function App() {
                   <div className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200">
-                       <CloudRainWind className="w-6 h-6 text-gray-600" />
+                        <CloudRainWind className="w-6 h-6 text-gray-600" />
                       </div>
                       <h2 className="text-2xl font-bold text-gray-800">Enchente</h2>
                     </div>
@@ -4532,7 +4329,7 @@ export default function App() {
         {/* End Main Content */}
         <div>
           {/* Add Report Modal */}
-         
+
           {/* SEGUNDO MODAL */}
           {currentPage === "add-report" && (
             <div className="fixed inset-20 flex items-start justify-center p-4 pt-10 z-40 overflow-y-auto">
