@@ -36,6 +36,8 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "./components/figma/ImageWithFallback";
 import { CustomDropdown } from "./components/CustomDropdown";
+import { AppHeader } from "./components/AppHeader";
+import { DecorativeShapes } from "./components/DecorativeShapes";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
 
@@ -989,69 +991,6 @@ const mockReports: Report[] = [
 ];
 
 // Componente de formas geométricas decorativas
-const DecorativeShapes = () => (
-  <>
-    {/* Canto superior esquerdo - verde fraco */}
-    <div className="fixed top-0 left-0 w-64 h-64 pointer-events-none z-0">
-      <div className="absolute top-0 left-0 w-full h-full bg-green-500/8 rounded-br-full"></div>
-    </div>
-
-    {/* Canto superior direito - vermelho com parte reta para direita */}
-    <div className="fixed top-0 right-0 w-64 h-64 pointer-events-none z-0">
-      <div className="absolute top-0 right-0 w-full h-full bg-red-500/10 rounded-tl-full"></div>
-    </div>
-
-    {/* Canto inferior direito - amarelo menor */}
-    <div className="fixed bottom-0 right-0 w-48 h-48 pointer-events-none z-0">
-      <div className="absolute bottom-0 right-0 w-full h-full bg-yellow-400/15 rounded-tl-full"></div>
-    </div>
-
-    {/* Formas aleatórias espalhadas sem sobreposição */}
-    <div className="fixed top-[25%] left-[12%] w-36 h-36 pointer-events-none z-0">
-      <div className="absolute top-0 left-0 w-full h-full bg-green-500/8 rounded-br-full"></div>
-    </div>
-
-    <div className="fixed top-[18%] right-[18%] w-42 h-42 pointer-events-none z-0">
-      <div className="absolute top-0 right-0 w-full h-full bg-red-500/10 rounded-bl-full"></div>
-    </div>
-
-    <div className="fixed top-[42%] left-[35%] w-32 h-32 pointer-events-none z-0">
-      <div className="absolute top-0 left-0 w-full h-full bg-yellow-400/15 rounded-tr-full"></div>
-    </div>
-
-    <div className="fixed top-[40%] right-[33%] w-38 h-38 pointer-events-none z-0">
-      <div className="absolute top-0 right-0 w-full h-full bg-green-500/8 rounded-tl-full"></div>
-    </div>
-
-    <div className="fixed bottom-[38%] left-[18%] w-40 h-40 pointer-events-none z-0">
-      <div className="absolute bottom-0 left-0 w-full h-full bg-red-500/10 rounded-br-full"></div>
-    </div>
-
-    <div className="fixed bottom-[24%] right-[26%] w-34 h-34 pointer-events-none z-0">
-      <div className="absolute bottom-0 right-0 w-full h-full bg-yellow-400/15 rounded-tl-full"></div>
-    </div>
-
-    <div className="fixed top-[68%] left-[15%] w-36 h-36 pointer-events-none z-0">
-      <div className="absolute top-0 left-0 w-full h-full bg-yellow-400/15 rounded-tr-full"></div>
-    </div>
-
-    <div className="fixed top-[75%] left-[25%] w-32 h-32 pointer-events-none z-0">
-      <div className="absolute top-0 left-0 w-full h-full bg-green-500/8 rounded-bl-full"></div>
-    </div>
-
-    <div className="fixed top-[45%] right-[10%] w-34 h-34 pointer-events-none z-0">
-      <div className="absolute top-0 right-0 w-full h-full bg-green-500/8 rounded-br-full"></div>
-    </div>
-
-    <div className="fixed bottom-[67%] left-[50%] w-36 h-36 pointer-events-none z-0">
-      <div className="absolute bottom-0 left-0 w-full h-full bg-yellow-400/15 rounded-tl-full"></div>
-    </div>
-
-    <div className="fixed top-[85%] right-[15%] w-30 h-30 pointer-events-none z-0">
-      <div className="absolute top-0 right-0 w-full h-full bg-red-500/10 rounded-tr-full"></div>
-    </div>
-  </>
-);
 
 type PageType = "home" | "social" | "safety" | "documents" | "login" | "profile" | "add-occurrence" | "add-report";
 
@@ -1870,107 +1809,15 @@ export default function App() {
       {/* Formas decorativas */}
       <DecorativeShapes />
 
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 relative z-10">
-        <div className="max-w-7x1 mx-40 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-25">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <ImageWithFallback
-                src="src/imports/Logo.jpeg"
-                alt="Logotipo"
-                className="h-19 w-auto"
-              />
-            </div>
-
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              <button
-                onClick={() => setCurrentPage("home")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "home"
-                  ? "bg-[#e7e7e7] font-medium"
-                  : "hover:bg-gray-50"
-                  }`}
-              >
-                <Home className="w-6 h-7" />
-                <h2>Início</h2>
-              </button>
-              <button
-                onClick={() => setCurrentPage("safety")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "safety"
-                  ? "bg-[#e7e7e7] font-medium"
-                  : "hover:bg-gray-50"
-                  }`}
-              >
-                <Shield className="w-6 h-7" />
-                <h2>Orientações</h2>
-              </button>
-              <button
-                onClick={() => setCurrentPage("documents")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "documents"
-                  ? "bg-[#e7e7e7] font-medium"
-                  : "hover:bg-gray-50"
-                  }`}
-              >
-                <FileText className="w-6 h-7" />
-                <h2>Documentos</h2>
-              </button>
-              <button
-                onClick={() => setCurrentPage("social")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "social"
-                  ? "bg-[#e7e7e7] font-medium"
-                  : "hover:bg-gray-50"
-                  }`}
-              >
-                <Users className="w-6 h-7" />
-                <h2>Rede Social</h2>
-              </button>
-            </nav>
-
-            {/* User Actions */}
-            <div className="flex items-center gap-4">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => setShowNotifications(!showNotifications)}
-                    className={`relative p-2 rounded-full transition-all duration-200 transform active:scale-95 ${showNotifications
-                      ? "bg-gray-200 hover:bg-gray-300"
-                      : "hover:bg-gray-100"
-                      }`}
-                  >
-                    <Bell className={`w-6 h-7 transition-colors duration-200 ${showNotifications
-                      ? "text-gray-800"
-                      : "text-gray-600"
-                      }`} />
-                    {notifications.length > 0 && (
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => setCurrentPage("profile")}
-                    className="flex items-center gap-2 hover:bg-gray-100 rounded-full p-2 transition-colors"
-                  >
-                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {user?.user_metadata?.display_name?.charAt(0).toUpperCase() || "U"}
-                    </div>
-                    <span className="text-lg font-size: 24px text-gray-700">
-                      {user?.user_metadata?.display_name?.split(" ")[0] || "Usuário"}
-                    </span>
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => setCurrentPage("login")}
-                  className="bg-[#089448] hover:bg-[#067838] text-white px-4 py-2 rounded-md font-medium transition-colors"
-                >
-                  Entrar
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        user={user}
+        notifications={notifications}
+        showNotifications={showNotifications}
+        setShowNotifications={setShowNotifications}
+        onLogout={handleLogout}
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
