@@ -1,5 +1,5 @@
 import { Bell, FileText, Home, LogOut, Shield, Users } from "lucide-react";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { ImageWithFallback } from "./ImageWithFallback";
 import type { PageType } from "../App";
 
 
