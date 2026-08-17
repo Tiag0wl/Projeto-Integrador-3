@@ -992,7 +992,7 @@ const mockReports: Report[] = [
 
 // Componente de formas geométricas decorativas
 
-type PageType = "home" | "social" | "safety" | "documents" | "login" | "profile" | "add-occurrence" | "add-report";
+export type PageType = "home" | "social" | "safety" | "documents" | "login" | "profile" | "add-occurrence" | "add-report";
 
 export default function App() {
   const { user, loading, signUp, signIn, signOut } = useAuth();

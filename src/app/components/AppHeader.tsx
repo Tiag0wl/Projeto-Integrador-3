@@ -1,9 +1,11 @@
 import { Bell, FileText, Home, LogOut, Shield, Users } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import type { PageType } from "../App";
+
 
 interface AppHeaderProps {
   currentPage: string;
-  onPageChange: (page: string) => void;
+  onPageChange: (page: PageType) => void;
   user: any;
   notifications: any[];
   showNotifications: boolean;
