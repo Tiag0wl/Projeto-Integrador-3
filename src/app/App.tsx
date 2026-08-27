@@ -1,41 +1,4 @@
 import React, { useState, useEffect } from "react";
-import ReportsMasonry from "./components/ReportsMasonry";
-import {
-  Bell,
-  Home,
-  Shield,
-  FileText,
-  Users,
-  AlertTriangle,
-  Download,
-  CheckCircle,
-  XCircle,
-  Clock,
-  ThumbsUp,
-  ThumbsDown,
-  Star,
-  Image as ImageIcon,
-  Video,
-  Camera,
-  MapPin,
-  LogOut,
-  Calendar,
-  Mail,
-  ChevronDown,
-  Droplets,
-  Wind,
-  ArrowLeft,
-  MountainSnow,
-  Tornado,
-  CloudLightning,
-  CloudRainWind,
-  CloudHail,
-  ExternalLink,
-  Newspaper,
-
-} from "lucide-react";
-import { ImageWithFallback } from "./components/ImageWithFallback";
-import { CustomDropdown } from "./components/CustomDropdown";
 import { AppHeader } from "./components/AppHeader";
 import { DecorativeShapes } from "./components/DecorativeShapes";
 import { useAuth } from "../hooks/useAuth";
@@ -53,6 +16,8 @@ import { SafetyPage } from "./pages/safetyPage";
 import { CatastropheType } from "./pages/safetyPage";
 import DocumentsPage from "./pages/documentsPage";
 import AddOccurrencePage from "./pages/addOccurrencePage";
+import ProfilePage from "./pages/profilePage";
+import AddReportModal from "./pages/addReportModal";
 
 const [reports, setReports] = useState<Report[]>(mockReports);
 
@@ -177,10 +142,9 @@ export default function App() {
   const [filterDate, setFilterDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([]);
-  const [profileTab, setProfileTab] = useState("relatos");
+  const [profileTab, setProfileTab] = useState<"notificacoes" | "relatos" | "favoritos">("notificacoes");
   const [notifications] = useState<any[]>([]);
-  const [showNotifications, setShowNotifications] =
-    useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [isAnimating, setIsAnimating] = useState(false);
@@ -1026,279 +990,32 @@ export default function App() {
         )}
 
         {/* Profile Page - requires authentication */}
-        {(currentPage as PageType) === "profile" && user && (
-          <div>
-            {/* Card de Informações do Usuário */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                  {user?.user_metadata?.display_name?.charAt(0).toUpperCase() || "U"}
-                </div>
-                <div className="flex-1">
-                  <h1 className="text-2xl font-bold">{user?.user_metadata?.display_name || "Usuário"}</h1>
-                  <p className="text-gray-600 flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    {user?.email || "email@exemplo.com"}
-                  </p>
-                </div>
-                <button
-                  onClick={() => signOut()}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sair
-                </button>
-              </div>
-            </div>
-
-            {/* Abas */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-              <div className="flex border-b border-gray-200">
-                <button
-                  onClick={() => setProfileTab("notificacoes")}
-                  className={`flex-1 px-6 py-3 font-medium transition-colors ${profileTab === "notificacoes"
-                    ? "text-green-600 border-b-2 border-green-600"
-                    : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Bell className="w-4 h-4" />
-                    Notificações
-                  </div>
-                </button>
-                <button
-                  onClick={() => setProfileTab("relatos")}
-                  className={`flex-1 px-6 py-3 font-medium transition-colors ${profileTab === "relatos"
-                    ? "text-green-600 border-b-2 border-green-600"
-                    : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Meus Relatos
-                  </div>
-                </button>
-                <button
-                  onClick={() => setProfileTab("favoritos")}
-                  className={`flex-1 px-6 py-3 font-medium transition-colors ${profileTab === "favoritos"
-                    ? "text-green-600 border-b-2 border-green-600"
-                    : "text-gray-600 hover:text-gray-800"
-                    }`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Star className="w-4 h-4" />
-                    Favoritos
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Conteúdo das Abas */}
-            {profileTab === "notificacoes" && (
-              <div>
-                <h2 className="text-xl font-bold mb-4">
-                  Notificações
-                </h2>
-                {notifications.length === 0 ? (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                    <Bell className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="font-semibold text-lg mb-2">
-                      Nenhuma notificação
-                    </h3>
-                    <p className="text-gray-600">
-                      Você não tem notificações no momento
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {notifications.map((notification, index) => (
-                      <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                        <p>{notification}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {profileTab === "relatos" && (
-              <div>
-                <h2 className="text-xl font-bold mb-4">
-                  Meus Relatos
-                </h2>
-                {reports.filter(r => r.user === (user?.user_metadata?.display_name || "Usuário")).length === 0 ? (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                    <FileText className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="font-semibold text-lg mb-2">
-                      Nenhum relato ainda
-                    </h3>
-                    <p className="text-gray-600">
-                      Você ainda não fez nenhum relato de ocorrências
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {reports
-                      .filter(r => r.user === (user?.user_metadata?.display_name || "Usuário"))
-                      .map((report) => (
-                        <div key={report.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                          <div className="flex items-start gap-3">
-                            <div className={`w-10 h-10 ${getProfileColor(report.user)} rounded-full flex items-center justify-center`}>
-                              <span className="text-white text-lg font-bold">
-                                {getInitial(report.user)}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg">{report.title}</h3>
-                              <p className="text-gray-600 mb-2">{report.description}</p>
-                              <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <span>{report.location}</span>
-                                <span>{report.date}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {profileTab === "favoritos" && (
-              <div>
-                <h2 className="text-xl font-bold mb-4">
-                  Ocorrências Favoritadas ({favorites.length})
-                </h2>
-                {favorites.length === 0 ? (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                    <Star className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h3 className="font-semibold text-lg mb-2">
-                      Nenhum favorito ainda
-                    </h3>
-                    <p className="text-gray-600">
-                      Favorite ocorrências para acessá-las rapidamente aqui
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {reports
-                      .filter(r => favorites.includes(r.id))
-                      .map((report) => (
-                        <div key={report.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                          <div className="flex items-start gap-3">
-                            <div className={`w-10 h-10 ${getProfileColor(report.user)} rounded-full flex items-center justify-center`}>
-                              <span className="text-white text-lg font-bold">
-                                {getInitial(report.user)}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg">{report.title}</h3>
-                              <p className="text-gray-600 mb-2">{report.description}</p>
-                              <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <span>{report.location}</span>
-                                <span>{report.date}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+        {currentPage === "profile" && user && (
+          <ProfilePage
+            user={user}
+            profileTab={profileTab}
+            setProfileTab={setProfileTab}
+            notifications={notifications}
+            reports={reports}
+            favorites={favorites}
+            signOut={signOut}
+            getProfileColor={getProfileColor}
+            getInitial={getInitial}
+          />
         )}
 
         {/* End Main Content */}
         <div>
-          {/* Add Report Modal */}
-
-          {/* SEGUNDO MODAL */}
           {currentPage === "add-report" && (
-            <div className="fixed inset-20 flex items-start justify-center p-4 pt-10 z-40 overflow-y-auto">
-              <div className="bg-white border-2 border-gray-400 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] max-w-2xl w-full px-[24px] py-[20px] mx-[0px] my-[5px]">
-                <h2 className="text-2xl font-bold mb-2 text-left">
-                  Adicionar Relato
-                </h2>
-
-                {authError && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-red-600 text-sm">{authError}</p>
-                  </div>
-                )}
-
-                {authMessage && (
-                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
-                    <p className="text-green-600 text-sm">{authMessage}</p>
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Bairro:
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Digite"
-                      value={reportForm.neighborhood}
-                      onChange={(e) => setReportForm(prev => ({ ...prev, neighborhood: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-
-                  {/* SEVERIDADE */}
-                  <div>
-                    <label className="text-sm text-gray-600 font-medium">
-                      Gravidade:
-                    </label>
-                    <CustomDropdown
-                      value={reportForm.severity}
-                      onChange={(value) => setReportForm(prev => ({ ...prev, severity: value }))}
-                      options={[
-                        { value: "Perigo Baixo", label: "Perigo Baixo" },
-                        { value: "Perigo Moderado", label: "Perigo Moderado" },
-                        { value: "Perigo Alto", label: "Perigo Alto" },
-                        { value: "Perigo Extremo", label: "Perigo Extremo" }
-                      ]}
-                      placeholder="Selecione..."
-                    />
-                  </div>
-
-                  {/* DESCRIÇÃO */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Descrição:
-                    </label>
-                    <textarea
-                      rows={4}
-                      placeholder="Descreva o que aconteceu com você..."
-                      value={reportForm.description}
-                      onChange={(e) => setReportForm(prev => ({ ...prev, description: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 mt-6">
-                  <button
-                    onClick={() => setCurrentPage("social")}
-
-
-                    className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-
-                  <button
-                    onClick={handleReportSubmit}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Enviando..." : "Concluir"}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <AddReportModal
+              reportForm={reportForm}
+              setReportForm={setReportForm}
+              authError={authError}
+              authMessage={authMessage}
+              isSubmitting={isSubmitting}
+              handleReportSubmit={handleReportSubmit}
+              setCurrentPage={setCurrentPage}
+            />
           )}
         </div>
       </main>
