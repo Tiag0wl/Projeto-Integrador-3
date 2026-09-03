@@ -222,31 +222,31 @@ export default function AddOccurrencePage({
                 }
                 options={[
                   {
-                    value: "Enchente",
+                    value: "ENCHENTE",
                     label: "Enchente",
                   },
                   {
-                    value: "Tempestade",
+                    value: "TEMPESTADE",
                     label: "Tempestade",
                   },
                   {
-                    value: "Granizo",
+                    value: "GRANIZO",
                     label: "Granizo",
                   },
                   {
-                    value: "Vendaval",
+                    value: "VENDAVAL",
                     label: "Vendaval",
                   },
                   {
-                    value: "Deslizamento",
+                    value: "DESLIZAMENTO",
                     label: "Deslizamento",
                   },
                   {
-                    value: "Ciclone",
+                    value: "CICLONE",
                     label: "Ciclone",
                   },
                   {
-                    value: "Alagamento",
+                    value: "ALAGAMENTO",
                     label: "Alagamento",
                   },
                 ]}

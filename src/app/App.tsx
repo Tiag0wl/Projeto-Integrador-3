@@ -194,7 +194,7 @@ export default function App() {
     const createdAt = row.created_at || row.date;
     const date = createdAt
       ? new Date(createdAt).toLocaleDateString("pt-BR") + " - " +
-        new Date(createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      new Date(createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
       : "";
 
     return {
@@ -325,7 +325,7 @@ export default function App() {
     }
   };
 
-  const saveUserReport = async (occurrenceId: string, description: string, neighborhood = "") => {
+  const saveUserReport = async (occurrenceId: string, description: string, neighborhood = "", severity = "Perigo Baixo") => {
     if (!user) return null;
 
     try {
@@ -337,6 +337,7 @@ export default function App() {
           author_name: user.user_metadata?.display_name || user.email || "Usuário",
           description: description.trim(),
           neighborhood: neighborhood || null,
+          severity: severity || "Perigo Baixo",
           likes: 0,
           dislikes: 0,
           has_media: false
@@ -387,7 +388,12 @@ export default function App() {
     setAuthError("");
 
     try {
-      const result = await saveUserReport(String(selectedOccurrence.id), reportForm.description, reportForm.neighborhood);
+      const result = await saveUserReport(
+        String(selectedOccurrence.id),
+        reportForm.description,
+        reportForm.neighborhood,
+        reportForm.severity
+      );
 
       if (!result) {
         setAuthError("Erro ao adicionar relato. Tente novamente.");
@@ -638,21 +644,23 @@ export default function App() {
 
   const selectedOccurrenceSubreports = selectedOccurrence
     ? (selectedOccurrence.userReports || []).map((item: any, index: number) => {
-        const key = String(item.id || `${selectedOccurrence.id}-report-${index}`);
-        const author = item.author_name ||
-          (item.user_id === user?.id
-            ? (user?.user_metadata?.display_name || user?.email || "Usuário")
-            : "Usuário");
+      const key = String(item.id || `${selectedOccurrence.id}-report-${index}`);
+      const author = item.author_name ||
+        (item.user_id === user?.id
+          ? (user?.user_metadata?.display_name || user?.email || "Usuário")
+          : "Usuário");
 
-        return {
-          key,
-          author,
-          description: item.description || "",
-          hasMedia: Boolean(item.has_media),
-          likes: Number(item.likes || reportLikes[key] || 0),
-          dislikes: Number(item.dislikes || reportDislikes[key] || 0),
-        };
-      })
+      return {
+        key,
+        author,
+        description: item.description || "",
+        neighborhood: item.neighborhood || "",
+        severity: item.severity || "Perigo Baixo",
+        hasMedia: Boolean(item.has_media),
+        likes: Number(item.likes || reportLikes[key] || 0),
+        dislikes: Number(item.dislikes || reportDislikes[key] || 0),
+      };
+    })
     : [];
 
   if (loading) {
@@ -689,7 +697,13 @@ export default function App() {
 
       <AppHeader
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        onPageChange={(page) => {
+          setCurrentPage(page);
+
+          if (page === "home") {
+            setSelectedOccurrence(null);
+          }
+        }}
         user={user}
         notifications={notifications}
         showNotifications={showNotifications}

@@ -49,11 +49,23 @@ export default function ReportsMasonry({
       className="flex w-auto -ml-4"
       columnClassName="pl-4 bg-clip-padding"
     >
-      {/* Ocorrência principal */}
-      <div className="mb-4">
+      <ReportCard
+        report={selectedOccurrence}
+        isMain
+        reportLikes={reportLikes}
+        reportDislikes={reportDislikes}
+        userIndividualReportLikes={userIndividualReportLikes}
+        userIndividualReportDislikes={userIndividualReportDislikes}
+        handleIndividualReportLike={handleIndividualReportLike}
+        handleIndividualReportDislike={handleIndividualReportDislike}
+        getProfileColor={getProfileColor}
+        getInitial={getInitial}
+      />
+
+      {selectedOccurrenceSubreports.map((subreport) => (
         <ReportCard
-          report={selectedOccurrence}
-          isMain
+          key={subreport.key}
+          report={subreport}
           reportLikes={reportLikes}
           reportDislikes={reportDislikes}
           userIndividualReportLikes={userIndividualReportLikes}
@@ -63,23 +75,6 @@ export default function ReportsMasonry({
           getProfileColor={getProfileColor}
           getInitial={getInitial}
         />
-      </div>
-
-      {/* Relatos */}
-      {selectedOccurrenceSubreports.map((subreport) => (
-        <div key={subreport.key} className="mb-4">
-          <ReportCard
-            report={subreport}
-            reportLikes={reportLikes}
-            reportDislikes={reportDislikes}
-            userIndividualReportLikes={userIndividualReportLikes}
-            userIndividualReportDislikes={userIndividualReportDislikes}
-            handleIndividualReportLike={handleIndividualReportLike}
-            handleIndividualReportDislike={handleIndividualReportDislike}
-            getProfileColor={getProfileColor}
-            getInitial={getInitial}
-          />
-        </div>
       ))}
     </Masonry>
   );
