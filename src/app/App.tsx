@@ -3,8 +3,6 @@ import { AppHeader } from "./components/AppHeader";
 import { DecorativeShapes } from "./components/DecorativeShapes";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
-import { mockReports } from "./data/mockReports";
-import type { Report } from "./types";
 import { mockDocuments } from "./data/mockDocuments";
 import { mockNews } from "./data/mockNews";
 import { awarenessMessages } from "./data/awarenessMessages";
@@ -19,8 +17,26 @@ import AddOccurrencePage from "./pages/addOccurrencePage";
 import ProfilePage from "./pages/profilePage";
 import AddReportModal from "./pages/addReportModal";
 
-const [reports, setReports] = useState<Report[]>(mockReports);
-
+interface AppReport {
+  id: number;
+  user: string;
+  others: number;
+  type: string;
+  severity: string;
+  severityColor: string;
+  city: string;
+  neighborhood: string;
+  state: string;
+  location: string;
+  date: string;
+  likes: number;
+  dislikes: number;
+  description: string;
+  reportsCount: number;
+  userId?: string | null;
+  authorName?: string;
+  userReports?: any[];
+}
 
 export type PageType = "home" | "social" | "safety" | "documents" | "login" | "profile" | "add-occurrence" | "add-report";
 
@@ -29,7 +45,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
   const [showAddModal2, setShowAddModal2] = useState(false);
   const [selectedOccurrence, setSelectedOccurrence] =
-    useState<Report | null>(null);
+    useState<AppReport | null>(null);
 
   // Estados para login/cadastro com Supabase
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
@@ -45,7 +61,6 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [newOccurrences, setNewOccurrences] = useState<number[]>([]);
-  const [newReports, setNewReports] = useState<number[]>([]);
 
   // State for add-occurrence form
   const [occurrenceForm, setOccurrenceForm] = useState({
@@ -131,7 +146,7 @@ export default function App() {
   };
 
   // Aplicar aleatorização aos relatos
-  const [shuffledReports, setShuffledReports] = useState(mockReports);
+  const [shuffledReports, setShuffledReports] = useState<AppReport[]>([]);
 
   const reports = shuffledReports;
   const [filterCity, setFilterCity] = useState("Todas");
@@ -141,9 +156,9 @@ export default function App() {
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
   const [filterDate, setFilterDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [profileTab, setProfileTab] = useState<"notificacoes" | "relatos" | "favoritos">("notificacoes");
+  const [profileTab, setProfileTab] = useState<"notificacoes" | "relatos">("notificacoes");
   const [notifications] = useState<any[]>([]);
+  const [myUserReports, setMyUserReports] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState("Todos");
@@ -151,151 +166,153 @@ export default function App() {
   const [reportsLimit, setReportsLimit] = useState(24);
   const [documentsLimit, setDocumentsLimit] = useState(18);
 
-  // Estados para likes/dislikes individuais e favoritos por relato
-  const [reportLikes, setReportLikes] = useState<{ [key: string]: number }>(() => {
-    const likes: { [key: string]: number } = {};
-    reports.forEach(report => {
-      likes[report.id.toString()] = report.likes;
-      likes[`${report.id}-main`] = report.likes;
-      // Initialize individual reports likes
-      for (let i = 0; i < report.others; i++) {
-        likes[`${report.id}-individual-${i}`] = Math.floor(report.likes * (0.8 - i * 0.05));
-      }
-    });
-    return likes;
-  });
-  const [reportDislikes, setReportDislikes] = useState<{ [key: string]: number }>(() => {
-    const dislikes: { [key: string]: number } = {};
-    reports.forEach(report => {
-      dislikes[report.id.toString()] = report.dislikes;
-      dislikes[`${report.id}-main`] = report.dislikes;
-      // Initialize individual reports dislikes
-      for (let i = 0; i < report.others; i++) {
-        dislikes[`${report.id}-individual-${i}`] = Math.floor(report.dislikes * (0.8 - i * 0.05));
-      }
-    });
-    return dislikes;
-  });
-  // Estado para relatos individuais favoritados dentro de ocorrências
-  const [individualFavoriteReports, setIndividualFavoriteReports] = useState<{ [key: string]: boolean }>({});
+  // Estados para votos das ocorrências e relatos.
+  // Os valores iniciais vêm do Supabase; nada é mais gerado artificialmente no código.
+  const [reportLikes, setReportLikes] = useState<{ [key: string]: number }>({});
+  const [reportDislikes, setReportDislikes] = useState<{ [key: string]: number }>({});
 
-  // Estados para botões Útil/Não Útil por ocorrência
   const [usefulReports, setUsefulReports] = useState<{ [key: number]: boolean }>({});
   const [notUsefulReports, setNotUsefulReports] = useState<{ [key: number]: boolean }>({});
+  const [usefulCounts, setUsefulCounts] = useState<{ [key: number]: number }>({});
+  const [notUsefulCounts, setNotUsefulCounts] = useState<{ [key: number]: number }>({});
 
-  // Estados para contadores de útil/não útil - inicializados com valores dos relatos
-  const [usefulCounts, setUsefulCounts] = useState<{ [key: number]: number }>(() => {
-    const initialCounts: { [key: number]: number } = {};
-    mockReports.forEach(report => {
-      initialCounts[report.id] = report.likes;
-    });
-    return initialCounts;
-  });
-  const [notUsefulCounts, setNotUsefulCounts] = useState<{ [key: number]: number }>(() => {
-    const initialCounts: { [key: number]: number } = {};
-    mockReports.forEach(report => {
-      initialCounts[report.id] = report.dislikes;
-    });
-    return initialCounts;
-  });
-
-  // Funções para persistência de favoritos no Supabase
-  const saveFavoritesToSupabase = async (favorites: { [key: string]: boolean }) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_favorites')
-        .upsert({
-          user_id: user.id,
-          favorites: JSON.stringify(favorites),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Erro ao salvar favoritos:', error);
-    }
+  // Persistência de ocorrências e relatos no Supabase
+  const getSeverityColor = (severity: string) => {
+    const colors: Record<string, string> = {
+      "Perigo Baixo": "bg-green-500",
+      "Perigo Médio": "bg-yellow-500",
+      "Perigo Alto": "bg-red-500",
+      "Perigo Extremo": "bg-red-700",
+    };
+    return colors[severity] || "bg-gray-500";
   };
 
-  const deriveFavoriteOccurrencesFromMap = (favoritesMap: { [key: string]: boolean }) => {
-    const favoriteIds = new Set<number>();
-    Object.entries(favoritesMap).forEach(([key, value]) => {
-      if (!value) return;
-      const id = Number(key.split("-")[0]);
-      if (!Number.isNaN(id)) {
-        favoriteIds.add(id);
-      }
-    });
-    return Array.from(favoriteIds);
+  const normalizeOccurrence = (row: any, occurrenceReports: any[] = []): AppReport => {
+    const reportsCount = Number(row.reports_count ?? 1);
+    const location = [row.city, row.neighborhood].filter(Boolean).join(", ") +
+      (row.state ? ` - ${row.state}` : "");
+    const createdAt = row.created_at || row.date;
+    const date = createdAt
+      ? new Date(createdAt).toLocaleDateString("pt-BR") + " - " +
+        new Date(createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      : "";
+
+    return {
+      id: Number(row.id),
+      user: row.author_name || (row.user_id === user?.id
+        ? (user?.user_metadata?.display_name || user?.email || "Usuário")
+        : "Usuário"),
+      userId: row.user_id,
+      authorName: row.author_name || undefined,
+      others: Math.max(0, reportsCount - 1),
+      type: String(row.type || "Ocorrência"),
+      severity: String(row.severity || "Perigo Baixo"),
+      severityColor: row.severity_color || getSeverityColor(row.severity),
+      city: row.city || "",
+      neighborhood: row.neighborhood || "",
+      state: row.state || "",
+      location,
+      date,
+      description: row.description || "",
+      likes: Number(row.likes || 0),
+      dislikes: Number(row.dislikes || 0),
+      reportsCount,
+      userReports: occurrenceReports,
+    };
   };
 
-  const loadFavoritesFromSupabase = async () => {
-    if (!user) return;
+  const loadUserOccurrences = async () => {
+    if (!user) return [];
 
     try {
       const { data, error } = await supabase
-        .from('user_favorites')
-        .select('favorites')
-        .eq('user_id', user.id)
-        .single();
+        .from("user_occurrences")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-        throw error;
-      }
+      if (error) throw error;
 
-      if (data?.favorites) {
-        const favorites = JSON.parse(data.favorites);
-        setIndividualFavoriteReports(favorites);
-        setFavorites(deriveFavoriteOccurrencesFromMap(favorites));
-      }
+      const occurrencesWithReports = await Promise.all(
+        (data || []).map(async (occurrence: any) => {
+          const { data: occurrenceReports, error: reportsError } = await supabase
+            .from("user_reports")
+            .select("*")
+            .eq("occurrence_id", occurrence.id)
+            .order("created_at", { ascending: true });
+
+          if (reportsError) throw reportsError;
+          return { occurrence, reports: occurrenceReports || [] };
+        })
+      );
+
+      const normalized = occurrencesWithReports.map(({ occurrence, reports: occurrenceReports }) =>
+        normalizeOccurrence(occurrence, occurrenceReports)
+      );
+
+      const likes: { [key: string]: number } = {};
+      const dislikes: { [key: string]: number } = {};
+
+      normalized.forEach((occurrence) => {
+        likes[String(occurrence.id)] = occurrence.likes;
+        dislikes[String(occurrence.id)] = occurrence.dislikes;
+        likes[`${occurrence.id}-main`] = occurrence.likes;
+        dislikes[`${occurrence.id}-main`] = occurrence.dislikes;
+
+        (occurrence.userReports || []).forEach((report: any) => {
+          const key = String(report.id);
+          likes[key] = Number(report.likes || 0);
+          dislikes[key] = Number(report.dislikes || 0);
+        });
+      });
+
+      setReportLikes(likes);
+      setReportDislikes(dislikes);
+      setUsefulCounts(Object.fromEntries(normalized.map((r) => [r.id, r.likes])));
+      setNotUsefulCounts(Object.fromEntries(normalized.map((r) => [r.id, r.dislikes])));
+      setShuffledReports(normalized);
+
+      setMyUserReports(
+        occurrencesWithReports.flatMap(({ occurrence, reports: occurrenceReports }) =>
+          occurrenceReports
+            .filter((report: any) => report.user_id === user.id)
+            .map((report: any) => ({
+              ...report,
+              occurrence_id: occurrence.id,
+              occurrence_type: occurrence.type,
+              occurrence_location: [occurrence.city, occurrence.neighborhood]
+                .filter(Boolean)
+                .join(", ") + (occurrence.state ? ` - ${occurrence.state}` : ""),
+            }))
+        )
+      );
+
+      return normalized;
     } catch (error) {
-      console.error('Erro ao carregar favoritos:', error);
+      console.error("Erro ao carregar ocorrências e relatos:", error);
+      return [];
     }
   };
 
-  // Carregar favoritos quando usuário mudar
-  useEffect(() => {
-    if (user) {
-      loadFavoritesFromSupabase();
-    } else {
-      // Limpar favoritos quando usuário deslogar
-      setIndividualFavoriteReports({});
-    }
-  }, [user]);
-
-  // Salvar favoritos quando mudar
-  useEffect(() => {
-    if (user && Object.keys(individualFavoriteReports).length > 0) {
-      saveFavoritesToSupabase(individualFavoriteReports);
-    }
-  }, [individualFavoriteReports, user]);
-
-  useEffect(() => {
-    setFavorites(deriveFavoriteOccurrencesFromMap(individualFavoriteReports));
-  }, [individualFavoriteReports]);
-
-  // Funções para persistência de ocorrências e relatos no Supabase
   const saveUserOccurrence = async (occurrence: any) => {
     if (!user) return null;
 
     try {
       const { data, error } = await supabase
-        .from('user_occurrences')
+        .from("user_occurrences")
         .insert({
           user_id: user.id,
+          author_name: user.user_metadata?.display_name || user.email || "Usuário",
           type: occurrence.type,
           severity: occurrence.severity,
           severity_color: occurrence.severityColor,
           city: occurrence.city,
-          neighborhood: occurrence.neighborhood,
-          state: occurrence.state,
+          neighborhood: occurrence.neighborhood || "",
+          state: occurrence.state || "",
+          location: occurrence.location || "",
           description: occurrence.description,
-          likes: occurrence.likes || 0,
-          dislikes: occurrence.dislikes || 0,
-          reports_count: occurrence.reportsCount || 1
+          likes: 0,
+          dislikes: 0,
+          reports_count: 1
         })
         .select()
         .single();
@@ -303,39 +320,57 @@ export default function App() {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Erro ao salvar ocorrência:', error);
+      console.error("Erro ao salvar ocorrência:", error);
       return null;
     }
   };
 
-  const saveUserReport = async (occurrenceId: string, description: string) => {
+  const saveUserReport = async (occurrenceId: string, description: string, neighborhood = "") => {
     if (!user) return null;
 
     try {
       const { data, error } = await supabase
-        .from('user_reports')
+        .from("user_reports")
         .insert({
           occurrence_id: occurrenceId,
           user_id: user.id,
-          description: description
+          author_name: user.user_metadata?.display_name || user.email || "Usuário",
+          description: description.trim(),
+          neighborhood: neighborhood || null,
+          likes: 0,
+          dislikes: 0,
+          has_media: false
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      // Atualizar contador de relatos na ocorrência
-      await supabase
-        .from('user_occurrences')
-        .update({ reports_count: supabase.rpc('increment', { count: 1 }) })
-        .eq('id', occurrenceId);
+      const { data: occurrence, error: occurrenceError } = await supabase
+        .from("user_occurrences")
+        .select("reports_count")
+        .eq("id", occurrenceId)
+        .single();
+
+      if (occurrenceError) throw occurrenceError;
+
+      const { error: updateError } = await supabase
+        .from("user_occurrences")
+        .update({ reports_count: Number(occurrence?.reports_count || 0) + 1 })
+        .eq("id", occurrenceId);
+
+      if (updateError) throw updateError;
 
       return data;
     } catch (error) {
-      console.error('Erro ao salvar relato:', error);
+      console.error("Erro ao salvar relato:", error);
       return null;
     }
   };
+
+  useEffect(() => {
+    if (user) loadUserOccurrences();
+  }, [user]);
 
   const handleReportSubmit = async () => {
     if (!selectedOccurrence || !user) {
@@ -352,60 +387,38 @@ export default function App() {
     setAuthError("");
 
     try {
-      const result = await saveUserReport(selectedOccurrence.id.toString(), reportForm.description);
+      const result = await saveUserReport(String(selectedOccurrence.id), reportForm.description, reportForm.neighborhood);
 
-      if (result) {
-        setAuthMessage("Relato adicionado com sucesso!");
-        setReportForm({ neighborhood: '', type: '', severity: '', description: '' });
-        setShowAddModal2(false);
-        setAttachedFiles([]);
-        // Refresh the occurrences to show the new report count
-        loadUserOccurrences();
-      } else {
+      if (!result) {
         setAuthError("Erro ao adicionar relato. Tente novamente.");
+        return;
+      }
+
+      setAuthMessage("Relato adicionado com sucesso!");
+      setReportForm({ neighborhood: "", type: "", severity: "", description: "" });
+      setShowAddModal2(false);
+      setAttachedFiles([]);
+
+      await loadUserOccurrences();
+
+      const refreshed = await supabase
+        .from("user_occurrences")
+        .select("*")
+        .eq("id", selectedOccurrence.id)
+        .single();
+
+      if (refreshed.data) {
+        const { data: occurrenceReports } = await supabase
+          .from("user_reports")
+          .select("*")
+          .eq("occurrence_id", selectedOccurrence.id);
+        setSelectedOccurrence(normalizeOccurrence(refreshed.data, occurrenceReports || []));
       }
     } catch (error) {
-      console.error('Erro no submit do relato:', error);
+      console.error("Erro no submit do relato:", error);
       setAuthError("Erro ao adicionar relato. Tente novamente.");
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const loadUserOccurrences = async () => {
-    if (!user) return [];
-
-    try {
-      const { data, error } = await supabase
-        .from('user_occurrences')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-
-      // Carregar relatos para cada ocorrência
-      const occurrencesWithReports = await Promise.all(
-        (data || []).map(async (occurrence) => {
-          const { data: reports, error: reportsError } = await supabase
-            .from('user_reports')
-            .select('*')
-            .eq('occurrence_id', occurrence.id)
-            .order('date', { ascending: false });
-
-          if (reportsError) throw reportsError;
-
-          return {
-            ...occurrence,
-            userReports: reports || []
-          };
-        })
-      );
-
-      return occurrencesWithReports;
-    } catch (error) {
-      console.error('Erro ao carregar ocorrências:', error);
-      return [];
     }
   };
 
@@ -413,184 +426,105 @@ export default function App() {
   const [userIndividualReportLikes, setUserIndividualReportLikes] = useState<{ [key: string]: boolean }>({});
   const [userIndividualReportDislikes, setUserIndividualReportDislikes] = useState<{ [key: string]: boolean }>({});
 
-  // Carregar ocorrências do usuário quando logar
-  useEffect(() => {
-    if (user) {
-      loadUserOccurrences();
-    }
-  }, [user]);
+  // Votos dos relatos individuais. O contador é atualizado no Supabase e na tela.
+  const handleIndividualReportLike = async (reportKey: string) => {
+    const wasLiked = !!userIndividualReportLikes[reportKey];
+    const wasDisliked = !!userIndividualReportDislikes[reportKey];
+    const currentLikes = Number(reportLikes[reportKey] || 0);
+    const currentDislikes = Number(reportDislikes[reportKey] || 0);
 
-  // Funções para likes/dislikes em relatos individuais
-  const handleIndividualReportLike = (reportKey: string) => {
-    const wasLiked = userIndividualReportLikes[reportKey];
-    const wasDisliked = userIndividualReportDislikes[reportKey];
+    const nextLikes = Math.max(0, currentLikes + (wasLiked ? -1 : 1));
+    const nextDislikes = Math.max(0, currentDislikes - (wasDisliked ? 1 : 0));
 
-    // Se já estava curtido, remove o like
-    if (wasLiked) {
-      setUserIndividualReportLikes(prev => ({
-        ...prev,
-        [reportKey]: false
-      }));
-      setReportLikes(prev => ({
-        ...prev,
-        [reportKey]: (prev[reportKey] || 0) - 1
-      }));
-    } else {
-      // Adiciona like
-      setUserIndividualReportLikes(prev => ({
-        ...prev,
-        [reportKey]: true
-      }));
-      setReportLikes(prev => ({
-        ...prev,
-        [reportKey]: (prev[reportKey] || 0) + 1
-      }));
+    setUserIndividualReportLikes((prev) => ({ ...prev, [reportKey]: !wasLiked }));
+    setUserIndividualReportDislikes((prev) => ({ ...prev, [reportKey]: false }));
+    setReportLikes((prev) => ({ ...prev, [reportKey]: nextLikes }));
+    setReportDislikes((prev) => ({ ...prev, [reportKey]: nextDislikes }));
 
-      // Se estava com dislike, remove
-      if (wasDisliked) {
-        setUserIndividualReportDislikes(prev => ({
-          ...prev,
-          [reportKey]: false
-        }));
-        setReportDislikes(prev => ({
-          ...prev,
-          [reportKey]: (prev[reportKey] || 0) - 1
-        }));
-      }
-    }
+    const { error } = await supabase
+      .from("user_reports")
+      .update({ likes: nextLikes, dislikes: nextDislikes })
+      .eq("id", Number(reportKey));
+
+    if (error) console.error("Erro ao salvar like do relato:", error);
   };
 
-  const handleIndividualReportDislike = (reportKey: string) => {
-    const wasLiked = userIndividualReportLikes[reportKey];
-    const wasDisliked = userIndividualReportDislikes[reportKey];
+  const handleIndividualReportDislike = async (reportKey: string) => {
+    const wasLiked = !!userIndividualReportLikes[reportKey];
+    const wasDisliked = !!userIndividualReportDislikes[reportKey];
+    const currentLikes = Number(reportLikes[reportKey] || 0);
+    const currentDislikes = Number(reportDislikes[reportKey] || 0);
 
-    // Se já estava com dislike, remove
-    if (wasDisliked) {
-      setUserIndividualReportDislikes(prev => ({
-        ...prev,
-        [reportKey]: false
-      }));
-      setReportDislikes(prev => ({
-        ...prev,
-        [reportKey]: (prev[reportKey] || 0) - 1
-      }));
-    } else {
-      // Adiciona dislike
-      setUserIndividualReportDislikes(prev => ({
-        ...prev,
-        [reportKey]: true
-      }));
-      setReportDislikes(prev => ({
-        ...prev,
-        [reportKey]: (prev[reportKey] || 0) + 1
-      }));
+    const nextLikes = Math.max(0, currentLikes - (wasLiked ? 1 : 0));
+    const nextDislikes = Math.max(0, currentDislikes + (wasDisliked ? -1 : 1));
 
-      // Se estava com like, remove
-      if (wasLiked) {
-        setUserIndividualReportLikes(prev => ({
-          ...prev,
-          [reportKey]: false
-        }));
-        setReportLikes(prev => ({
-          ...prev,
-          [reportKey]: (prev[reportKey] || 0) - 1
-        }));
-      }
-    }
+    setUserIndividualReportLikes((prev) => ({ ...prev, [reportKey]: false }));
+    setUserIndividualReportDislikes((prev) => ({ ...prev, [reportKey]: !wasDisliked }));
+    setReportLikes((prev) => ({ ...prev, [reportKey]: nextLikes }));
+    setReportDislikes((prev) => ({ ...prev, [reportKey]: nextDislikes }));
+
+    const { error } = await supabase
+      .from("user_reports")
+      .update({ likes: nextLikes, dislikes: nextDislikes })
+      .eq("id", Number(reportKey));
+
+    if (error) console.error("Erro ao salvar dislike do relato:", error);
   };
 
-  // Funções para controlar botões Útil/Não Útil por ocorrência
-  const handleUsefulClick = (reportId: number) => {
-    const wasPreviouslyUseful = usefulReports[reportId];
-    const wasPreviouslyNotUseful = notUsefulReports[reportId];
+  // Votos da ocorrência principal. Persistidos no Supabase.
+  const handleUsefulClick = async (reportId: number) => {
+    const wasUseful = !!usefulReports[reportId];
+    const wasNotUseful = !!notUsefulReports[reportId];
+    const occurrence = reports.find((report) => report.id === reportId);
+    if (!occurrence) return;
 
-    setUsefulReports(prev => ({
-      ...prev,
-      [reportId]: !prev[reportId]
-    }));
-    setNotUsefulReports(prev => ({
-      ...prev,
-      [reportId]: false
-    }));
+    const nextLikes = Math.max(0, occurrence.likes + (wasUseful ? -1 : 1));
+    const nextDislikes = Math.max(0, occurrence.dislikes - (wasNotUseful ? 1 : 0));
 
-    // Atualizar contadores
-    if (wasPreviouslyUseful) {
-      // Se já era útil, decrementa
-      setUsefulCounts(prev => ({
-        ...prev,
-        [reportId]: Math.max(0, (prev[reportId] || 0) - 1)
-      }));
-    } else {
-      // Se não era útil, incrementa
-      setUsefulCounts(prev => ({
-        ...prev,
-        [reportId]: (prev[reportId] || 0) + 1
-      }));
-    }
+    setUsefulReports((prev) => ({ ...prev, [reportId]: !wasUseful }));
+    setNotUsefulReports((prev) => ({ ...prev, [reportId]: false }));
+    setUsefulCounts((prev) => ({ ...prev, [reportId]: nextLikes }));
+    setNotUsefulCounts((prev) => ({ ...prev, [reportId]: nextDislikes }));
+    setReportLikes((prev) => ({ ...prev, [String(reportId)]: nextLikes, [`${reportId}-main`]: nextLikes }));
+    setReportDislikes((prev) => ({ ...prev, [String(reportId)]: nextDislikes, [`${reportId}-main`]: nextDislikes }));
+    setShuffledReports((prev) => prev.map((report) =>
+      report.id === reportId ? { ...report, likes: nextLikes, dislikes: nextDislikes } : report
+    ));
 
-    // Se era não útil antes, decrementa o contador de não útil
-    if (wasPreviouslyNotUseful) {
-      setNotUsefulCounts(prev => ({
-        ...prev,
-        [reportId]: Math.max(0, (prev[reportId] || 0) - 1)
-      }));
-    }
+    const { error } = await supabase
+      .from("user_occurrences")
+      .update({ likes: nextLikes, dislikes: nextDislikes })
+      .eq("id", reportId);
+
+    if (error) console.error("Erro ao salvar like da ocorrência:", error);
   };
 
-  const handleNotUsefulClick = (reportId: number) => {
-    const wasPreviouslyNotUseful = notUsefulReports[reportId];
-    const wasPreviouslyUseful = usefulReports[reportId];
+  const handleNotUsefulClick = async (reportId: number) => {
+    const wasUseful = !!usefulReports[reportId];
+    const wasNotUseful = !!notUsefulReports[reportId];
+    const occurrence = reports.find((report) => report.id === reportId);
+    if (!occurrence) return;
 
-    setNotUsefulReports(prev => ({
-      ...prev,
-      [reportId]: !prev[reportId]
-    }));
-    setUsefulReports(prev => ({
-      ...prev,
-      [reportId]: false
-    }));
+    const nextLikes = Math.max(0, occurrence.likes - (wasUseful ? 1 : 0));
+    const nextDislikes = Math.max(0, occurrence.dislikes + (wasNotUseful ? -1 : 1));
 
-    // Atualizar contadores
-    if (wasPreviouslyNotUseful) {
-      // Se já era não útil, decrementa
-      setNotUsefulCounts(prev => ({
-        ...prev,
-        [reportId]: Math.max(0, (prev[reportId] || 0) - 1)
-      }));
-    } else {
-      // Se não era não útil, incrementa
-      setNotUsefulCounts(prev => ({
-        ...prev,
-        [reportId]: (prev[reportId] || 0) + 1
-      }));
-    }
+    setNotUsefulReports((prev) => ({ ...prev, [reportId]: !wasNotUseful }));
+    setUsefulReports((prev) => ({ ...prev, [reportId]: false }));
+    setUsefulCounts((prev) => ({ ...prev, [reportId]: nextLikes }));
+    setNotUsefulCounts((prev) => ({ ...prev, [reportId]: nextDislikes }));
+    setReportLikes((prev) => ({ ...prev, [String(reportId)]: nextLikes, [`${reportId}-main`]: nextLikes }));
+    setReportDislikes((prev) => ({ ...prev, [String(reportId)]: nextDislikes, [`${reportId}-main`]: nextDislikes }));
+    setShuffledReports((prev) => prev.map((report) =>
+      report.id === reportId ? { ...report, likes: nextLikes, dislikes: nextDislikes } : report
+    ));
 
-    // Se era útil antes, decrementa o contador de útil
-    if (wasPreviouslyUseful) {
-      setUsefulCounts(prev => ({
-        ...prev,
-        [reportId]: Math.max(0, (prev[reportId] || 0) - 1)
-      }));
-    }
+    const { error } = await supabase
+      .from("user_occurrences")
+      .update({ likes: nextLikes, dislikes: nextDislikes })
+      .eq("id", reportId);
+
+    if (error) console.error("Erro ao salvar dislike da ocorrência:", error);
   };
-
-  const isOccurrenceFavorited = (reportId: number) => {
-    return !!individualFavoriteReports[reportId] || !!individualFavoriteReports[`${reportId}-main`];
-  };
-
-  const toggleOccurrenceFavorite = (reportId: number) => {
-    const mainKey = `${reportId}-main`;
-    const currentlyFavorited = isOccurrenceFavorited(reportId);
-
-    setIndividualFavoriteReports(prev => ({
-      ...prev,
-      [reportId]: !currentlyFavorited,
-      [mainKey]: !currentlyFavorited
-    }));
-  };
-
-  const handleFavoriteClick = (reportId: number) => toggleOccurrenceFavorite(reportId);
-  const toggleFavorite = (reportId: number) => toggleOccurrenceFavorite(reportId);
 
   const categories = [
     "Todos",
@@ -619,14 +553,6 @@ export default function App() {
     setDocumentsLimit(prev => prev + 18);
   };
 
-  // Função para favoritar relato individual dentro de ocorrência
-  const toggleIndividualFavoriteReport = (reportKey: string) => {
-    setIndividualFavoriteReports(prev => ({
-      ...prev,
-      [reportKey]: !prev[reportKey]
-    }));
-  };
-
   // Função para obter a cor de fundo do perfil baseada no nome (para dentro da ocorrência)
   const getProfileColor = (name: string) => {
     const colors = [
@@ -645,21 +571,6 @@ export default function App() {
   const getInitial = (name: string) => {
     return name.charAt(0).toUpperCase();
   };
-
-  // Função para aleatorizar array
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-  };
-
-  // Aleatorizar relatos uma vez ao carregar
-  useEffect(() => {
-    setShuffledReports(shuffleArray(mockReports));
-  }, []);
 
   // Funções para gerenciar seções expansíveis
   const toggleSection = (sectionKey: string) => {
@@ -699,36 +610,15 @@ export default function App() {
 
   // Ordenar relatos com prioridade para novos itens
   const sortedReports = [...reports].sort((a, b) => {
-    // Novas ocorrências sempre no topo
-    const aIsNewOccurrence = newOccurrences.includes(a.id);
-    const bIsNewOccurrence = newOccurrences.includes(b.id);
+    const aScore = Number(a.likes || 0) - Number(a.dislikes || 0);
+    const bScore = Number(b.likes || 0) - Number(b.dislikes || 0);
 
-    if (aIsNewOccurrence && !bIsNewOccurrence) return -1;
-    if (!aIsNewOccurrence && bIsNewOccurrence) return 1;
+    if (bScore !== aScore) return bScore - aScore;
 
-    // Se ambos são ocorrências ou ambos não são, ordenar por likes
-    if (aIsNewOccurrence && bIsNewOccurrence) {
-      return b.likes - a.likes;
-    }
-
-    // Para relatos normais, novos relatos vêm após o primeiro relato existente
-    const aIsNewReport = newReports.includes(a.id);
-    const bIsNewReport = newReports.includes(b.id);
-
-    if (aIsNewReport && !bIsNewReport) {
-      // Encontrar o primeiro relato não novo
-      const firstNonNewReport = reports.find(r => !newReports.includes(r.id) && !newOccurrences.includes(r.id));
-      if (firstNonNewReport) {
-        return firstNonNewReport.id === b.id ? -1 : 1;
-      }
-    }
-
-    if (!aIsNewReport && bIsNewReport) {
-      return 1;
-    }
-
-    // Para o resto, ordenar por likes
-    return b.likes - a.likes;
+    // Em caso de empate, a ocorrência mais nova aparece primeiro.
+    const aDate = new Date(a.date || 0).getTime();
+    const bDate = new Date(b.date || 0).getTime();
+    return bDate - aDate;
   });
 
   // Filtrar relatos baseado nos filtros selecionados
@@ -741,55 +631,29 @@ export default function App() {
       report.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     return cityMatch && severityMatch && typeMatch && dateMatch && searchMatch;
   });
 
-  const reportAuthors = [
-    "João Silva",
-    "Ana Santos",
-    "Carlos Oliveira",
-    "Fernanda Costa",
-    "Roberto Souza",
-    "Mariana Lima",
-    "Pedro Alves",
-    "Luciana Dias",
-    "Thiago Mendes",
-    "Camila Ferreira"
-  ];
-
-  const reportSnippets = [
-    "Também presenciei. Situação muito grave na minha rua.",
-    "Confirmo! Meu carro foi atingido, prejuízo grande.",
-    "Telhado da minha casa teve danos. Vizinhos também afetados.",
-    "Muito assustador. Primeira vez que vejo algo assim.",
-    "Fiquei sem energia por horas. Ainda tem muitos problemas.",
-    "Água entrou na minha casa. Perdemos vários móveis e eletrodomésticos.",
-    "Árvores caíram na rua, bloqueando o trânsito. Defesa Civil já foi acionada.",
-    "Estou trabalhando remotamente porque não consigo sair de casa. Situação crítica.",
-    "A rua ficou intransitável. Muitos carros parados e lama.",
-    "Vizinhos estão ajudando uns aos outros, mas ainda falta muita ajuda."
-  ];
-
   const selectedOccurrenceSubreports = selectedOccurrence
-    ? Array.from({ length: Math.min(selectedOccurrence.others, 20) }, (_, index) => {
-      const key = `${selectedOccurrence.id}-individual-${index}`;
-      return {
-        key,
-        author: reportAuthors[index % reportAuthors.length],
-        description: reportSnippets[index % reportSnippets.length],
-        hasMedia: index % 3 === 0,
-        likes: reportLikes[key] ?? Math.max(1, selectedOccurrence.likes - index * 2),
-        dislikes: reportDislikes[key] ?? Math.max(0, selectedOccurrence.dislikes - Math.floor(index * 0.2)),
-        isFavorite: !!individualFavoriteReports[key]
-      };
-    })
-    : [];
+    ? (selectedOccurrence.userReports || []).map((item: any, index: number) => {
+        const key = String(item.id || `${selectedOccurrence.id}-report-${index}`);
+        const author = item.author_name ||
+          (item.user_id === user?.id
+            ? (user?.user_metadata?.display_name || user?.email || "Usuário")
+            : "Usuário");
 
-  const favoriteSelectedOccurrenceSubreports = selectedOccurrenceSubreports.filter((report) => report.isFavorite);
-  const regularSelectedOccurrenceSubreports = selectedOccurrenceSubreports.filter((report) => !report.isFavorite);
+        return {
+          key,
+          author,
+          description: item.description || "",
+          hasMedia: Boolean(item.has_media),
+          likes: Number(item.likes || reportLikes[key] || 0),
+          dislikes: Number(item.dislikes || reportDislikes[key] || 0),
+        };
+      })
+    : [];
 
   if (loading) {
     return (
@@ -886,10 +750,8 @@ export default function App() {
             usefulCounts={usefulCounts}
             notUsefulReports={notUsefulReports}
             notUsefulCounts={notUsefulCounts}
-            individualFavoriteReports={individualFavoriteReports}
             handleUsefulClick={handleUsefulClick}
             handleNotUsefulClick={handleNotUsefulClick}
-            handleFavoriteClick={handleFavoriteClick}
             loadMoreReports={loadMoreReports}
           />
         )}
@@ -908,15 +770,7 @@ export default function App() {
             handleUsefulClick={handleUsefulClick}
             handleNotUsefulClick={handleNotUsefulClick}
 
-            favorites={favorites}
-            toggleFavorite={toggleFavorite}
-
-            favoriteSelectedOccurrenceSubreports={
-              favoriteSelectedOccurrenceSubreports
-            }
-            regularSelectedOccurrenceSubreports={
-              regularSelectedOccurrenceSubreports
-            }
+            selectedOccurrenceSubreports={selectedOccurrenceSubreports}
             reportLikes={reportLikes}
             reportDislikes={reportDislikes}
 
@@ -926,20 +780,11 @@ export default function App() {
             userIndividualReportDislikes={
               userIndividualReportDislikes
             }
-            individualFavoriteReports={
-              individualFavoriteReports
-            }
             handleIndividualReportLike={
               handleIndividualReportLike
             }
             handleIndividualReportDislike={
               handleIndividualReportDislike
-            }
-            toggleIndividualFavoriteReport={
-              toggleIndividualFavoriteReport
-            }
-            isOccurrenceFavorited={
-              isOccurrenceFavorited
             }
             getProfileColor={getProfileColor}
             getInitial={getInitial}
@@ -981,7 +826,6 @@ export default function App() {
             setCurrentPage={setCurrentPage}
             setSelectedOccurrence={setSelectedOccurrence}
             saveUserOccurrence={saveUserOccurrence}
-            saveUserReport={saveUserReport}
             reports={reports}
             setShuffledReports={setShuffledReports}
             setNewOccurrences={setNewOccurrences}
@@ -997,7 +841,7 @@ export default function App() {
             setProfileTab={setProfileTab}
             notifications={notifications}
             reports={reports}
-            favorites={favorites}
+            myUserReports={myUserReports}
             signOut={signOut}
             getProfileColor={getProfileColor}
             getInitial={getInitial}

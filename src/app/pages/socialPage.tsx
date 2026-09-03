@@ -4,7 +4,6 @@ import {
   Clock,
   ThumbsUp,
   ThumbsDown,
-  Star,
   FileText,
 } from "lucide-react";
 
@@ -47,11 +46,9 @@ interface SocialPageProps {
   notUsefulReports: Record<string, boolean>;
   notUsefulCounts: Record<string, number>;
 
-  individualFavoriteReports: Record<string, boolean>;
 
   handleUsefulClick: (id: number) => void;
   handleNotUsefulClick: (id: number) => void;
-  handleFavoriteClick: (id: number) => void;
 
   loadMoreReports: () => void;
 }
@@ -91,11 +88,9 @@ export default function SocialPage({
   notUsefulReports,
   notUsefulCounts,
 
-  individualFavoriteReports,
 
   handleUsefulClick,
   handleNotUsefulClick,
-  handleFavoriteClick,
 
   loadMoreReports,
 }: SocialPageProps) {
@@ -342,23 +337,6 @@ export default function SocialPage({
                       </button>
 
                     </div>
-
-                    {/* Favorite */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFavoriteClick(report.id);
-                      }}
-                      className="text-gray-600 hover:text-yellow-500 transition-colors"
-                    >
-                      <Star
-                        className={`w-4 h-4 ${
-                          individualFavoriteReports[report.id]
-                            ? "fill-yellow-500 text-yellow-500"
-                            : ""
-                        }`}
-                      />
-                    </button>
 
                   </div>
 

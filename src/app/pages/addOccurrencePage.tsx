@@ -43,11 +43,6 @@ interface AddOccurrencePageProps {
   setSelectedOccurrence: React.Dispatch<React.SetStateAction<any>>;
 
   saveUserOccurrence: (data: any) => Promise<any>;
-  saveUserReport: (
-    occurrenceId: string,
-    description: string
-  ) => Promise<any>;
-
   reports: Report[];
 
   setShuffledReports: React.Dispatch<
@@ -77,7 +72,6 @@ export default function AddOccurrencePage({
   setCurrentPage,
   setSelectedOccurrence,
   saveUserOccurrence,
-  saveUserReport,
   reports,
   setShuffledReports,
   setNewOccurrences,
@@ -437,11 +431,6 @@ export default function AddOccurrencePage({
                   await saveUserOccurrence(occurrenceData);
 
                 if (result) {
-                  await saveUserReport(
-                    result.id.toString(),
-                    occurrenceData.description
-                  );
-
                   const newOccurrence = {
                     id:
                       result.id ||
@@ -469,7 +458,6 @@ export default function AddOccurrencePage({
                     others: 0,
                     likes: 0,
                     dislikes: 0,
-                    isFavorite: false,
 
                     title:
                       occurrenceData.type ||

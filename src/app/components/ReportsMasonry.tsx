@@ -9,153 +9,78 @@ interface MainReport {
   type: string;
   likes: number;
   dislikes: number;
+  description?: string;
 }
 
 interface ReportsMasonryProps {
-  selectedOccurrence: MainReport | null;
-
-  favoriteSelectedOccurrenceSubreports: Subreport[];
-  regularSelectedOccurrenceSubreports: Subreport[];
-
+  selectedOccurrence: MainReport;
+  selectedOccurrenceSubreports: Subreport[];
   reportLikes: { [key: string]: number };
   reportDislikes: { [key: string]: number };
-
   userIndividualReportLikes: { [key: string]: boolean };
   userIndividualReportDislikes: { [key: string]: boolean };
-  individualFavoriteReports: { [key: string]: boolean };
-
   handleIndividualReportLike: (reportKey: string) => void;
   handleIndividualReportDislike: (reportKey: string) => void;
-  toggleIndividualFavoriteReport: (reportKey: string) => void;
-
-  toggleFavorite: (reportId: number) => void;
-  isOccurrenceFavorited: (reportId: number) => boolean;
-
   getProfileColor: (name: string) => string;
   getInitial: (name: string) => string;
 }
 
-const ReportsMasonry: React.FC<ReportsMasonryProps> = ({
+export default function ReportsMasonry({
   selectedOccurrence,
-  favoriteSelectedOccurrenceSubreports,
-  regularSelectedOccurrenceSubreports,
+  selectedOccurrenceSubreports,
   reportLikes,
   reportDislikes,
   userIndividualReportLikes,
   userIndividualReportDislikes,
-  individualFavoriteReports,
   handleIndividualReportLike,
   handleIndividualReportDislike,
-  toggleIndividualFavoriteReport,
-  toggleFavorite,
-  isOccurrenceFavorited,
   getProfileColor,
   getInitial,
-}) => {
-  if (!selectedOccurrence) {
-    return null;
-  }
-
+}: ReportsMasonryProps) {
   const breakpointColumnsObj = {
     default: 2,
-    1024: 2,
-    768: 1,
+    1100: 2,
+    700: 1,
   };
 
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">
-        Relatos ({selectedOccurrence.others + 1})
-      </h2>
+    <Masonry
+      breakpointCols={breakpointColumnsObj}
+      className="flex w-auto -ml-4"
+      columnClassName="pl-4 bg-clip-padding"
+    >
+      {/* Ocorrência principal */}
+      <div className="mb-4">
+        <ReportCard
+          report={selectedOccurrence}
+          isMain
+          reportLikes={reportLikes}
+          reportDislikes={reportDislikes}
+          userIndividualReportLikes={userIndividualReportLikes}
+          userIndividualReportDislikes={userIndividualReportDislikes}
+          handleIndividualReportLike={handleIndividualReportLike}
+          handleIndividualReportDislike={handleIndividualReportDislike}
+          getProfileColor={getProfileColor}
+          getInitial={getInitial}
+        />
+      </div>
 
-      <Masonry
-        breakpointCols={breakpointColumnsObj}
-        className="flex -ml-4 w-auto"
-        columnClassName="pl-4 bg-clip-padding"
-      >
-        {/* Relato principal */}
-        <div className="mb-4">
+      {/* Relatos */}
+      {selectedOccurrenceSubreports.map((subreport) => (
+        <div key={subreport.key} className="mb-4">
           <ReportCard
-            report={selectedOccurrence}
-            isMain
+            report={subreport}
             reportLikes={reportLikes}
             reportDislikes={reportDislikes}
             userIndividualReportLikes={userIndividualReportLikes}
             userIndividualReportDislikes={userIndividualReportDislikes}
-            individualFavoriteReports={individualFavoriteReports}
             handleIndividualReportLike={handleIndividualReportLike}
             handleIndividualReportDislike={handleIndividualReportDislike}
-            toggleIndividualFavoriteReport={
-              toggleIndividualFavoriteReport
-            }
-            toggleFavorite={toggleFavorite}
-            isOccurrenceFavorited={isOccurrenceFavorited}
             getProfileColor={getProfileColor}
             getInitial={getInitial}
           />
         </div>
-
-        {/* Relatos favoritos */}
-        {favoriteSelectedOccurrenceSubreports.map((report) => (
-          <div key={report.key} className="mb-4">
-            <ReportCard
-              report={report}
-              isFavorite
-              reportLikes={reportLikes}
-              reportDislikes={reportDislikes}
-              userIndividualReportLikes={userIndividualReportLikes}
-              userIndividualReportDislikes={
-                userIndividualReportDislikes
-              }
-              individualFavoriteReports={individualFavoriteReports}
-              handleIndividualReportLike={
-                handleIndividualReportLike
-              }
-              handleIndividualReportDislike={
-                handleIndividualReportDislike
-              }
-              toggleIndividualFavoriteReport={
-                toggleIndividualFavoriteReport
-              }
-              toggleFavorite={toggleFavorite}
-              isOccurrenceFavorited={isOccurrenceFavorited}
-              getProfileColor={getProfileColor}
-              getInitial={getInitial}
-            />
-          </div>
-        ))}
-
-        {/* Relatos normais */}
-        {regularSelectedOccurrenceSubreports.map((report) => (
-          <div key={report.key} className="mb-4">
-            <ReportCard
-              report={report}
-              reportLikes={reportLikes}
-              reportDislikes={reportDislikes}
-              userIndividualReportLikes={userIndividualReportLikes}
-              userIndividualReportDislikes={
-                userIndividualReportDislikes
-              }
-              individualFavoriteReports={individualFavoriteReports}
-              handleIndividualReportLike={
-                handleIndividualReportLike
-              }
-              handleIndividualReportDislike={
-                handleIndividualReportDislike
-              }
-              toggleIndividualFavoriteReport={
-                toggleIndividualFavoriteReport
-              }
-              toggleFavorite={toggleFavorite}
-              isOccurrenceFavorited={isOccurrenceFavorited}
-              getProfileColor={getProfileColor}
-              getInitial={getInitial}
-            />
-          </div>
-        ))}
-      </Masonry>
-    </div>
+      ))}
+    </Masonry>
   );
-};
-
-export default ReportsMasonry;
+}

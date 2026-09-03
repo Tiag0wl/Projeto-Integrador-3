@@ -9,7 +9,6 @@ export interface Report {
   date: string;
   likes: number;
   dislikes: number;
-  isFavorite: boolean;
   title: string;
   description: string;
   occurrenceId?: number;
