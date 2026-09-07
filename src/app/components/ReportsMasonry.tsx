@@ -49,20 +49,18 @@ export default function ReportsMasonry({
       className="flex w-auto -ml-4"
       columnClassName="pl-4 bg-clip-padding"
     >
-      <div className="mb-6">
-        <ReportCard
-          report={selectedOccurrence}
-          isMain
-          reportLikes={reportLikes}
-          reportDislikes={reportDislikes}
-          userIndividualReportLikes={userIndividualReportLikes}
-          userIndividualReportDislikes={userIndividualReportDislikes}
-          handleIndividualReportLike={handleIndividualReportLike}
-          handleIndividualReportDislike={handleIndividualReportDislike}
-          getProfileColor={getProfileColor}
-          getInitial={getInitial}
-        />
-      </div>
+      <ReportCard
+        report={selectedOccurrence}
+        isMain
+        reportLikes={reportLikes}
+        reportDislikes={reportDislikes}
+        userIndividualReportLikes={userIndividualReportLikes}
+        userIndividualReportDislikes={userIndividualReportDislikes}
+        handleIndividualReportLike={handleIndividualReportLike}
+        handleIndividualReportDislike={handleIndividualReportDislike}
+        getProfileColor={getProfileColor}
+        getInitial={getInitial}
+      />
 
       {selectedOccurrenceSubreports.map((subreport) => (
         <div key={subreport.key} className="mb-6">

@@ -222,31 +222,31 @@ export default function AddOccurrencePage({
                 }
                 options={[
                   {
-                    value: "ENCHENTE",
+                    value: "Enchente",
                     label: "Enchente",
                   },
                   {
-                    value: "TEMPESTADE",
+                    value: "Tempestade",
                     label: "Tempestade",
                   },
                   {
-                    value: "GRANIZO",
+                    value: "Granizo",
                     label: "Granizo",
                   },
                   {
-                    value: "VENDAVAL",
+                    value: "Vendaval",
                     label: "Vendaval",
                   },
                   {
-                    value: "DESLIZAMENTO",
+                    value: "Deslizamento",
                     label: "Deslizamento",
                   },
                   {
-                    value: "CICLONE",
+                    value: "Ciclone",
                     label: "Ciclone",
                   },
                   {
-                    value: "ALAGAMENTO",
+                    value: "Alagamento",
                     label: "Alagamento",
                   },
                 ]}
@@ -276,8 +276,8 @@ export default function AddOccurrencePage({
                     label: "Perigo Médio",
                   },
                   {
-                    value: "Perigo Alto",
-                    label: "Perigo Alto",
+                    value: "Perigo Extremo",
+                    label: "Perigo Extremo",
                   },
                 ]}
               />
@@ -389,7 +389,7 @@ export default function AddOccurrencePage({
                 } = {
                   "Perigo Baixo": "bg-green-500",
                   "Perigo Médio": "bg-yellow-500",
-                  "Perigo Alto": "bg-red-500",
+                  "Perigo Extremo": "bg-red-700",
                 };
 
                 const occurrenceData = {

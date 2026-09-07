@@ -12,6 +12,9 @@ export interface Subreport {
   author: string;
   description: string;
   hasMedia: boolean;
+  neighborhood: string;
+  severity: string;
+  createdAt?: string | null;
   likes: number;
   dislikes: number;
 }
@@ -118,8 +121,16 @@ const ReportCard: React.FC<ReportCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <p className="font-semibold text-sm truncate">{subreport.author}</p>
-            <span className="text-xs text-gray-500">• relato</span>
+            <span className="text-xs text-gray-500">• Perigo sofrido: {subreport.severity}</span>
           </div>
+          <p className="text-xs text-gray-500">
+            Bairro: {subreport.neighborhood} • {subreport.createdAt
+              ? new Date(subreport.createdAt).toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "Horário não informado"}
+          </p>
         </div>
       </div>
 

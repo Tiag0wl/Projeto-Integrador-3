@@ -124,7 +124,7 @@ export default function SocialPage({
               ? setCurrentPage("add-occurrence")
               : setCurrentPage("login")
           }
-          className="bg-[#089448] hover:bg-[#068942] transform hover:scale-103 hover:border-green-600 transition-all text-white rounded-md font-medium transition-colors custom-button px-6 py-2"
+          className="bg-[#089448] hover:bg-[#089448] text-white rounded-md font-medium transition-colors custom-button px-6 py-2"
         >
           + Adicionar Ocorrência
         </button>
@@ -169,7 +169,7 @@ export default function SocialPage({
             onChange={setFilterSeverity}
             options={[
               { value: "Todos", label: "Todos" },
-              { value: "Perigo Alto", label: "Perigo Alto" },
+              { value: "Perigo Extremo", label: "Perigo Extremo" },
               { value: "Perigo Médio", label: "Perigo Médio" },
               { value: "Perigo Baixo", label: "Perigo Baixo" },
             ]}

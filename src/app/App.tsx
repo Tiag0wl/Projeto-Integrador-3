@@ -325,22 +325,30 @@ export default function App() {
     }
   };
 
-  const saveUserReport = async (occurrenceId: string, description: string, neighborhood = "", severity = "Perigo Baixo") => {
+  const saveUserReport = async (
+    occurrenceId: string,
+    description: string,
+    neighborhood = "",
+    severity = "Perigo Baixo",
+    hasMedia = false
+  ) => {
     if (!user) return null;
 
     try {
+      const occurrenceIdNumber = Number(occurrenceId);
+
       const { data, error } = await supabase
         .from("user_reports")
         .insert({
-          occurrence_id: occurrenceId,
+          occurrence_id: occurrenceIdNumber,
           user_id: user.id,
           author_name: user.user_metadata?.display_name || user.email || "Usuário",
           description: description.trim(),
-          neighborhood: neighborhood || null,
+          neighborhood: neighborhood.trim() || null,
           severity: severity || "Perigo Baixo",
           likes: 0,
           dislikes: 0,
-          has_media: false
+          has_media: hasMedia
         })
         .select()
         .single();
@@ -350,7 +358,7 @@ export default function App() {
       const { data: occurrence, error: occurrenceError } = await supabase
         .from("user_occurrences")
         .select("reports_count")
-        .eq("id", occurrenceId)
+        .eq("id", occurrenceIdNumber)
         .single();
 
       if (occurrenceError) throw occurrenceError;
@@ -358,7 +366,7 @@ export default function App() {
       const { error: updateError } = await supabase
         .from("user_occurrences")
         .update({ reports_count: Number(occurrence?.reports_count || 0) + 1 })
-        .eq("id", occurrenceId);
+        .eq("id", occurrenceIdNumber);
 
       if (updateError) throw updateError;
 
@@ -392,7 +400,8 @@ export default function App() {
         String(selectedOccurrence.id),
         reportForm.description,
         reportForm.neighborhood,
-        reportForm.severity
+        reportForm.severity,
+        attachedFiles.length > 0
       );
 
       if (!result) {
@@ -657,6 +666,7 @@ export default function App() {
         neighborhood: item.neighborhood || "",
         severity: item.severity || "Perigo Baixo",
         hasMedia: Boolean(item.has_media),
+        createdAt: item.created_at || null,
         likes: Number(item.likes || reportLikes[key] || 0),
         dislikes: Number(item.dislikes || reportDislikes[key] || 0),
       };
