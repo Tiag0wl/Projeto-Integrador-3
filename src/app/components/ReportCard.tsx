@@ -110,7 +110,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
   const subreport = report as Subreport;
 
   return (
-    <div className="break-inside-avoid bg-white rounded-lg shadow-sm p-4 bg-[#f5f5f5]">
+    <div className="break-inside-avoid bg-white rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] p-4 bg-[#f5f5f5]">
       <div className="flex items-start gap-3 mb-3">
         <div className={`w-10 h-10 ${getProfileColor(subreport.author)} rounded-full flex items-center justify-center`}>
           <span className="text-white text-lg font-bold">{getInitial(subreport.author)}</span>

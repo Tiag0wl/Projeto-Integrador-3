@@ -169,12 +169,12 @@ export default function HomePage({
               <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
                   <span
-                    className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                    className={`text-xs font-bold px-3 py-1 rounded-full ${
                       news.category === "Crítico"
                         ? "bg-red-100 text-red-700"
                         : news.category === "Alerta"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-blue-100 text-blue-700"
+                        ? "bg-yellow-100 text-[#f6a511]"
+                        : "bg-green-100 text-green-700"
                     }`}
                   >
                     {news.category}

@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Clock, Users, ThumbsUp, ThumbsDown } from "lucide-react";
+import { MapPin, Clock, Users, ThumbsUp, ThumbsDown, ArrowLeft } from "lucide-react";
 import ReportsMasonry from "../components/ReportsMasonry";
 import type { PageType } from "../App";
 import type { Subreport } from "../components/ReportCard";
@@ -61,9 +61,10 @@ export default function OccurrenceDetailsPage({
     <div>
       <button
         onClick={() => setSelectedOccurrence(null)}
-        className="mb-4 text-sm text-gray-600 hover:text-gray-900"
+        className="mb-4 flex items-center text-[18px] text-gray-600 hover:text-gray-900 hover:scale-105 transition"
       >
-        ← Voltar para ocorrências
+        <ArrowLeft strokeWidth={3} className="w-4 h-4 mr-2" />
+        Voltar para ocorrências
       </button>
 
       <div className="bg-white border-2 border-gray-300 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] p-6 mb-6">
@@ -90,11 +91,6 @@ export default function OccurrenceDetailsPage({
           </div>
         </div>
 
-        {selectedOccurrence.description && (
-          <p className="mt-5 text-gray-700 leading-relaxed">
-            {selectedOccurrence.description}
-          </p>
-        )}
 
         <div className="flex flex-wrap items-center gap-4 mt-5 pt-4 border-t border-gray-100">
           <button
@@ -122,12 +118,7 @@ export default function OccurrenceDetailsPage({
         </div>
       </div>
 
-      <div className="mb-4">
-        <h2 className="text-2xl font-bold">Relatos relacionados</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Pessoas que presenciaram o mesmo evento podem complementar esta ocorrência.
-        </p>
-      </div>
+
 
       <ReportsMasonry
         selectedOccurrence={selectedOccurrence}

@@ -20,45 +20,44 @@ export function AppHeader({
   notifications,
   showNotifications,
   setShowNotifications,
-  onLogout,
 }: AppHeaderProps) {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 relative z-10">
       <div className="max-w-7x1 mx-40 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-25">
-          <div className="flex items-center gap-3">
+          <div className="flex items-left gap-20">
             <ImageWithFallback
               src="src/imports/Logo.jpeg"
               alt="Logotipo"
-              className="h-19 w-auto"
+              className="h-17 w-auto"
             />
           </div>
 
           <nav className="hidden md:flex items-center gap-6">
             <button
               onClick={() => onPageChange("home")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "home" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-50"}`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "home" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-100"}`}
             >
               <Home className="w-6 h-7" />
               <h2>Início</h2>
             </button>
             <button
               onClick={() => onPageChange("safety")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "safety" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-50"}`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "safety" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-100"}`}
             >
               <Shield className="w-6 h-7" />
               <h2>Orientações</h2>
             </button>
             <button
               onClick={() => onPageChange("documents")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "documents" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-50"}`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "documents" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-100"}`}
             >
               <FileText className="w-6 h-7" />
               <h2>Documentos</h2>
             </button>
             <button
               onClick={() => onPageChange("social")}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "social" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-50"}`}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "social" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-100"}`}
             >
               <Users className="w-6 h-7" />
               <h2>Rede Social</h2>
@@ -90,15 +89,6 @@ export function AppHeader({
                   </span>
                 </button>
 
-                {onLogout && (
-                  <button
-                    onClick={onLogout}
-                    className="p-2 rounded-full hover:bg-red-50 text-gray-500 hover:text-red-600 transition-colors"
-                    title="Sair"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </button>
-                )}
               </>
             ) : (
               <button
