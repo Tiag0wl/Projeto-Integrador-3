@@ -17,6 +17,11 @@ export interface Subreport {
   createdAt?: string | null;
   likes: number;
   dislikes: number;
+  mediaFiles?: Array<{
+    url: string;
+    name?: string;
+    type?: string;
+  }>;
 }
 
 interface MainReport {
@@ -27,6 +32,11 @@ interface MainReport {
   likes: number;
   dislikes: number;
   description?: string;
+  mediaFiles?: Array<{
+    url: string;
+    name?: string;
+    type?: string;
+  }>;
 }
 
 interface ReportCardProps {
@@ -58,7 +68,8 @@ const ReportCard: React.FC<ReportCardProps> = ({
     const mainReport = report as MainReport;
     const mainKey = `${mainReport.id}-main`;
 
-    const description = mainReport.description ||
+    const description =
+      mainReport.description ||
       (mainReport.type.toUpperCase() === "GRANIZO"
         ? "Granizo intenso atingiu a região. Pedras grandes causaram danos em veículos e telhados."
         : mainReport.type.toUpperCase() === "ALAGAMENTO"
@@ -66,6 +77,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
           : mainReport.type.toUpperCase() === "VENDAVAL"
             ? "Ventos muito fortes derrubaram árvores e placas. Muito perigoso."
             : `${mainReport.type.toLowerCase()} afetou toda a região. Situação crítica.`);
+
+    const mainMedia = Array.isArray(mainReport.mediaFiles)
+      ? mainReport.mediaFiles.filter((file) => file?.url)
+      : [];
 
     return (
       <div className="break-inside-avoid bg-white border-gray-300 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] p-4 border-l-4 border-green-500 bg-[#f5f5f5]">
@@ -84,11 +99,39 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
         <p className="text-sm text-gray-700 mb-3">{description}</p>
 
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400"><Camera className="w-5 h-5" /></div>
-          <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400"><ImageIcon className="w-5 h-5" /></div>
-          <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400"><Video className="w-5 h-5" /></div>
-        </div>
+        {mainMedia.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {mainMedia.slice(0, 3).map((file, index) => {
+              const type = file.type || "";
+              const isVideo =
+                type.startsWith("video/") ||
+                /\.(mp4|webm|mov|avi|mkv)$/i.test(file.url);
+
+              return isVideo ? (
+                <video
+                  key={`${file.url}-${index}`}
+                  src={file.url}
+                  controls
+                  className="w-full aspect-square object-cover rounded"
+                />
+              ) : (
+                <img
+                  key={`${file.url}-${index}`}
+                  src={file.url}
+                  alt={file.name || "Imagem da ocorrência"}
+                  className="w-full aspect-square object-cover rounded"
+                  loading="lazy"
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400"><Camera className="w-5 h-5" /></div>
+            <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400"><ImageIcon className="w-5 h-5" /></div>
+            <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400"><Video className="w-5 h-5" /></div>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-2 text-sm pt-3 border-t border-gray-100">
           <button
@@ -112,12 +155,17 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
   const subreport = report as Subreport;
 
+  const mediaFiles = Array.isArray(subreport.mediaFiles)
+    ? subreport.mediaFiles.filter((file) => file?.url)
+    : [];
+
   return (
     <div className="break-inside-avoid bg-white rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] p-4 bg-[#f5f5f5]">
       <div className="flex items-start gap-3 mb-3">
         <div className={`w-10 h-10 ${getProfileColor(subreport.author)} rounded-full flex items-center justify-center`}>
           <span className="text-white text-lg font-bold">{getInitial(subreport.author)}</span>
         </div>
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <p className="font-semibold text-sm truncate">{subreport.author}</p>
@@ -136,7 +184,58 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
       <p className="text-sm text-gray-700 mb-3">{subreport.description}</p>
 
-      {subreport.hasMedia && (
+      {subreport.hasMedia && mediaFiles.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {mediaFiles.slice(0, 3).map((file, index) => {
+            const type = file.type || "";
+            const isVideo =
+              type.startsWith("video/") ||
+              /\.(mp4|webm|mov|avi|mkv)$/i.test(file.url);
+
+            const isImage =
+              type.startsWith("image/") ||
+              /\.(jpg|jpeg|png|gif|webp|avif)(\?|$)/i.test(file.url);
+
+            if (isVideo) {
+              return (
+                <video
+                  key={`${file.url}-${index}`}
+                  src={file.url}
+                  controls
+                  className="w-full aspect-square object-cover rounded"
+                />
+              );
+            }
+
+            if (isImage) {
+              return (
+                <img
+                  key={`${file.url}-${index}`}
+                  src={file.url}
+                  alt={file.name || "Imagem do relato"}
+                  className="w-full aspect-square object-cover rounded"
+                  loading="lazy"
+                />
+              );
+            }
+
+            return (
+              <a
+                key={`${file.url}-${index}`}
+                href={file.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="aspect-square bg-gray-200 rounded flex flex-col items-center justify-center text-gray-500 text-xs text-center p-2 hover:bg-gray-300 transition"
+              >
+                <ImageIcon className="w-5 h-5 mb-1" />
+                <span className="truncate w-full">{file.name || "Abrir arquivo"}</span>
+              </a>
+            );
+          })}
+        </div>
+      )}
+
+      {subreport.hasMedia && mediaFiles.length === 0 && (
         <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400"><Camera className="w-5 h-5" /></div>
           <div className="aspect-square bg-gray-200 rounded flex items-center justify-center text-gray-400"><ImageIcon className="w-5 h-5" /></div>
@@ -152,6 +251,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
           <ThumbsUp className="w-4 h-4" />
           <span>{reportLikes[subreport.key] ?? subreport.likes}</span>
         </button>
+
         <button
           onClick={(e) => { e.stopPropagation(); handleIndividualReportDislike(subreport.key); }}
           className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportDislikes[subreport.key] ? "bg-red-100 text-red-700" : "text-gray-600 hover:text-red-700 hover:bg-red-50"}`}

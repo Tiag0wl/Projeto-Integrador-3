@@ -36,6 +36,11 @@ interface AppReport {
   userId?: string | null;
   authorName?: string;
   userReports?: any[];
+  mediaFiles?: Array<{
+  url: string;
+  name?: string;
+  type?: string;
+}>;
 }
 
 export type PageType = "home" | "social" | "safety" | "documents" | "login" | "profile" | "add-occurrence" | "add-report";
@@ -218,6 +223,7 @@ export default function App() {
       dislikes: Number(row.dislikes || 0),
       reportsCount,
       userReports: occurrenceReports,
+      mediaFiles: Array.isArray(row.media_files) ? row.media_files : [],
     };
   };
 
@@ -330,7 +336,7 @@ export default function App() {
     description: string,
     neighborhood = "",
     severity = "Perigo Baixo",
-    hasMedia = false
+    files: File[] = []
   ) => {
     if (!user) return null;
 
@@ -348,12 +354,54 @@ export default function App() {
           severity: severity || "Perigo Baixo",
           likes: 0,
           dislikes: 0,
-          has_media: hasMedia
+          has_media: files.length > 0,
+          media_files: []
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      const mediaFiles: Array<{ url: string; name: string; type: string }> = [];
+
+      for (const file of files) {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const filePath = `reports/${user.id}/${data.id}/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("report-media")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type || undefined
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from("report-media")
+          .getPublicUrl(filePath);
+
+        mediaFiles.push({
+          url: publicUrlData.publicUrl,
+          name: file.name,
+          type: file.type || "application/octet-stream"
+        });
+      }
+
+      if (mediaFiles.length > 0) {
+        const { error: mediaUpdateError } = await supabase
+          .from("user_reports")
+          .update({
+            has_media: true,
+            media_files: mediaFiles
+          })
+          .eq("id", data.id);
+
+        if (mediaUpdateError) throw mediaUpdateError;
+        data.has_media = true;
+        data.media_files = mediaFiles;
+      }
 
       const { data: occurrence, error: occurrenceError } = await supabase
         .from("user_occurrences")
@@ -381,6 +429,13 @@ export default function App() {
     if (user) loadUserOccurrences();
   }, [user]);
 
+  useEffect(() => {
+    if (currentPage === "add-report") {
+      setAuthError("");
+      setAuthMessage("");
+    }
+  }, [currentPage]);
+
   const handleReportSubmit = async () => {
     if (!selectedOccurrence || !user) {
       setAuthError("Você precisa estar logado para adicionar um relato");
@@ -401,7 +456,7 @@ export default function App() {
         reportForm.description,
         reportForm.neighborhood,
         reportForm.severity,
-        attachedFiles.length > 0
+        attachedFiles
       );
 
       if (!result) {
@@ -426,9 +481,23 @@ export default function App() {
         const { data: occurrenceReports } = await supabase
           .from("user_reports")
           .select("*")
-          .eq("occurrence_id", selectedOccurrence.id);
+          .eq("occurrence_id", selectedOccurrence.id)
+          .order("created_at", { ascending: true });
         setSelectedOccurrence(normalizeOccurrence(refreshed.data, occurrenceReports || []));
       }
+
+      setTimeout(() => {
+        setAuthMessage("");
+        setAuthError("");
+        setCurrentPage("social");
+
+        setTimeout(() => {
+          window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 300);
+      }, 2000);
     } catch (error) {
       console.error("Erro no submit do relato:", error);
       setAuthError("Erro ao adicionar relato. Tente novamente.");
@@ -666,6 +735,7 @@ export default function App() {
         neighborhood: item.neighborhood || "",
         severity: item.severity || "Perigo Baixo",
         hasMedia: Boolean(item.has_media),
+        mediaFiles: Array.isArray(item.media_files) ? item.media_files : [],
         createdAt: item.created_at || null,
         likes: Number(item.likes || reportLikes[key] || 0),
         dislikes: Number(item.dislikes || reportDislikes[key] || 0),
@@ -883,6 +953,10 @@ export default function App() {
               isSubmitting={isSubmitting}
               handleReportSubmit={handleReportSubmit}
               setCurrentPage={setCurrentPage}
+              attachedFiles={attachedFiles}
+              setAttachedFiles={setAttachedFiles}
+              handleFileUpload={handleFileUpload}
+              removeFile={removeFile}
             />
           )}
         </div>

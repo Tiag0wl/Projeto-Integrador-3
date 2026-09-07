@@ -1,4 +1,5 @@
 import React from "react";
+import { Camera } from "lucide-react";
 import { CustomDropdown } from "../components/CustomDropdown";
 import { PageType } from "../App";
 
@@ -17,6 +18,11 @@ interface AddReportModalProps {
   isSubmitting: boolean;
   handleReportSubmit: () => void;
   setCurrentPage: React.Dispatch<React.SetStateAction<PageType>>;
+  attachedFiles: File[];
+  setAttachedFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  removeFile: (index: number) => void;
+  
 }
 
 export default function AddReportModal({
@@ -27,6 +33,10 @@ export default function AddReportModal({
   isSubmitting,
   handleReportSubmit,
   setCurrentPage,
+  attachedFiles,
+  setAttachedFiles,
+  handleFileUpload,
+  removeFile,
 }: AddReportModalProps) {
   return (
     <div className="fixed inset-20 flex items-start justify-center p-4 pt-10 z-40 overflow-y-auto">
@@ -65,7 +75,7 @@ export default function AddReportModal({
               options={[
                 { value: "Perigo Baixo", label: "Perigo Baixo" },
                 { value: "Perigo Médio", label: "Perigo Médio" },
-                { value: "Perigo Extremo", label: "Perigo Extremo" },
+                { value: "Perigo Alto", label: "Perigo Alto" },
               ]}
             />
           </div>
@@ -79,6 +89,58 @@ export default function AddReportModal({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Conte o que você presenciou neste evento"
             />
+          </div>
+
+          {/* Fotos / arquivos */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Fotos (opcional)
+            </label>
+
+            <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer hover:border-gray-400 transition-colors">
+              <input
+                type="file"
+                multiple
+                accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload-report"
+              />
+
+              <label htmlFor="file-upload-report" className="cursor-pointer">
+                <Camera className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600">
+                  Clique para adicionar fotos ou arraste para cá
+                </p>
+              </label>
+            </div>
+
+            {attachedFiles.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium text-gray-700">
+                  Arquivos anexados ({attachedFiles.length}):
+                </p>
+
+                {attachedFiles.map((file, index) => (
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
+                  >
+                    <span className="text-sm text-gray-600 truncate flex-1">
+                      {file.name}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="ml-2 text-red-500 hover:text-red-700 text-sm"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
