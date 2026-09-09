@@ -21,8 +21,6 @@ interface OccurrenceForm {
   type: string;
   severity: string;
   personalSeverity: string;
-  occurredDate: string;
-  occurredTime: string;
 }
 
 interface AddOccurrencePageProps {
@@ -308,36 +306,6 @@ export default function AddOccurrencePage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Data da ocorrência
-              </label>
-              <input
-                type="date"
-                value={occurrenceForm.occurredDate}
-                onChange={(e) =>
-                  setOccurrenceForm({ ...occurrenceForm, occurredDate: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Horário da ocorrência
-              </label>
-              <input
-                type="time"
-                value={occurrenceForm.occurredTime}
-                onChange={(e) =>
-                  setOccurrenceForm({ ...occurrenceForm, occurredTime: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
-          </div>
-
           {/* Descrição */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -430,8 +398,6 @@ export default function AddOccurrencePage({
                 !occurrenceForm.type ||
                 !occurrenceForm.severity ||
                 !occurrenceForm.personalSeverity ||
-                !occurrenceForm.occurredDate ||
-                !occurrenceForm.occurredTime ||
                 !occurrenceForm.description
               ) {
                 alert(
@@ -453,9 +419,9 @@ export default function AddOccurrencePage({
                   type: occurrenceForm.type,
                   severity: occurrenceForm.severity,
                   personalSeverity: occurrenceForm.personalSeverity,
-                  occurredAt: new Date(
-                    `${occurrenceForm.occurredDate}T${occurrenceForm.occurredTime}:00`
-                  ).toISOString(),
+
+                  // Data e hora registradas automaticamente no momento do envio.
+                  occurredAt: new Date().toISOString(),
 
                   severityColor:
                     severityColorMap[
@@ -548,8 +514,6 @@ export default function AddOccurrencePage({
                     type: "",
                     severity: "",
                     personalSeverity: "",
-                    occurredDate: "",
-                    occurredTime: "",
                   });
 
                   setAttachedFiles([]);

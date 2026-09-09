@@ -79,8 +79,6 @@ export default function App() {
     type: '',
     severity: '',
     personalSeverity: '',
-    occurredDate: '',
-    occurredTime: ''
   });
 
   // State for add-report form
@@ -385,7 +383,7 @@ export default function App() {
     occurrenceId: string,
     description: string,
     neighborhood = "",
-    severity = "Perigo Baixo",
+    severity = "",
     files: File[] = []
   ) => {
     if (!user) return null;
@@ -400,8 +398,8 @@ export default function App() {
           user_id: user.id,
           author_name: user.user_metadata?.display_name || user.email || "Usuário",
           description: description.trim(),
-          neighborhood: neighborhood.trim() || null,
-          severity: severity || "Perigo Baixo",
+          neighborhood: neighborhood.trim(),
+          severity: severity.trim(),
           likes: 0,
           dislikes: 0,
           has_media: files.length > 0,
@@ -498,6 +496,16 @@ export default function App() {
       return;
     }
 
+    if (!reportForm.neighborhood.trim()) {
+      setAuthError("Por favor, informe o bairro onde o relato aconteceu.");
+      return;
+    }
+
+    if (!reportForm.severity.trim()) {
+      setAuthError("Por favor, selecione o perigo sofrido.");
+      return;
+    }
+
     if (!reportForm.description.trim()) {
       setAuthError("Por favor, adicione uma descrição");
       return;
@@ -553,7 +561,7 @@ export default function App() {
             behavior: "smooth",
           });
         }, 300);
-      }, 2000);
+      }, 800);
     } catch (error) {
       console.error("Erro no submit do relato:", error);
       setAuthError("Erro ao adicionar relato. Tente novamente.");
@@ -848,6 +856,53 @@ export default function App() {
     }
   };
 
+  // Abre a ocorrência relacionada a um relato salvo no perfil.
+  const handleOpenOccurrenceFromProfile = async (occurrenceId: number | string) => {
+    const id = Number(occurrenceId);
+    if (!Number.isFinite(id)) return;
+
+    // Primeiro tenta usar a ocorrência que já está carregada em memória.
+    const occurrenceInMemory = reports.find((report) => Number(report.id) === id);
+
+    if (occurrenceInMemory) {
+      setSelectedOccurrence(occurrenceInMemory);
+      setCurrentPage("social");
+      return;
+    }
+
+    // Caso não esteja carregada, busca diretamente no Supabase.
+    try {
+      const { data: occurrence, error } = await supabase
+        .from("user_occurrences")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+
+      if (occurrence) {
+        const { data: occurrenceReports, error: reportsError } = await supabase
+          .from("user_reports")
+          .select("*")
+          .eq("occurrence_id", id)
+          .order("created_at", { ascending: true });
+
+        if (reportsError) throw reportsError;
+
+        const normalizedOccurrence = normalizeOccurrence(
+          occurrence,
+          occurrenceReports || []
+        );
+
+        setSelectedOccurrence(normalizedOccurrence);
+        setCurrentPage("social");
+      }
+    } catch (error) {
+      console.error("Erro ao abrir ocorrência pelo perfil:", error);
+      alert("Não foi possível abrir a ocorrência. Tente novamente.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -1046,6 +1101,7 @@ export default function App() {
             signOut={signOut}
             getProfileColor={getProfileColor}
             getInitial={getInitial}
+            onOpenOccurrence={handleOpenOccurrenceFromProfile}
           />
         )}
 

@@ -2,7 +2,7 @@ import React from "react";
 import MediaViewer, {
   MediaFile,
 } from "../components/mediaViewer";
-import videoPlayIcon from "./playIcon.png"; 
+import videoPlayIcon from "../../imports/playIcon.png";
 import {
   ThumbsUp,
   ThumbsDown,

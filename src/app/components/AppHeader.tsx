@@ -1,4 +1,4 @@
-import { Bell, FileText, Home, LogOut, Shield, Users } from "lucide-react";
+import { Bell, FileText, Home, Shield, Users } from "lucide-react";
 import { ImageWithFallback } from "./ImageWithFallback";
 import type { PageType } from "../App";
 
@@ -21,6 +21,27 @@ export function AppHeader({
   showNotifications,
   setShowNotifications,
 }: AppHeaderProps) {
+
+  // Usa exatamente a mesma lógica de cores da ProfilePage/App.
+  const getProfileColor = (name: string) => {
+    const colors = [
+      "bg-[#e0d0a5]",
+      "bg-[#9abaa8]",
+      "bg-[#e0b0b0]",
+    ];
+
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const displayName =
+    user?.user_metadata?.display_name || user?.email || "Usuário";
+
+  const firstName =
+    user?.user_metadata?.display_name?.split(" ")[0] || "Usuário";
+
+  const initial = displayName.charAt(0).toUpperCase();
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 relative z-10">
       <div className="max-w-7x1 mx-40 px-4 sm:px-6 lg:px-8">
@@ -41,6 +62,7 @@ export function AppHeader({
               <Home className="w-6 h-7" />
               <h2>Início</h2>
             </button>
+
             <button
               onClick={() => onPageChange("safety")}
               className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "safety" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-100"}`}
@@ -48,6 +70,7 @@ export function AppHeader({
               <Shield className="w-6 h-7" />
               <h2>Orientações</h2>
             </button>
+
             <button
               onClick={() => onPageChange("documents")}
               className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "documents" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-100"}`}
@@ -55,6 +78,7 @@ export function AppHeader({
               <FileText className="w-6 h-7" />
               <h2>Documentos</h2>
             </button>
+
             <button
               onClick={() => onPageChange("social")}
               className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${currentPage === "social" ? "bg-[#e7e7e7] font-medium" : "hover:bg-gray-100"}`}
@@ -71,7 +95,10 @@ export function AppHeader({
                   onClick={() => setShowNotifications(!showNotifications)}
                   className={`relative p-2 rounded-full transition-all duration-200 transform active:scale-95 ${showNotifications ? "bg-gray-200 hover:bg-gray-300" : "hover:bg-gray-100"}`}
                 >
-                  <Bell className={`w-6 h-7 transition-colors duration-200 ${showNotifications ? "text-gray-800" : "text-gray-600"}`} />
+                  <Bell
+                    className={`w-6 h-7 transition-colors duration-200 ${showNotifications ? "text-gray-800" : "text-gray-600"}`}
+                  />
+
                   {notifications.length > 0 && (
                     <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                   )}
@@ -81,14 +108,16 @@ export function AppHeader({
                   onClick={() => onPageChange("profile")}
                   className="flex items-center gap-2 hover:bg-gray-100 rounded-full p-2 transition-colors"
                 >
-                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                    {user?.user_metadata?.display_name?.charAt(0).toUpperCase() || "U"}
+                  <div
+                    className={`w-10 h-10 ${getProfileColor(displayName)} rounded-full flex items-center justify-center text-white text-sm font-bold`}
+                  >
+                    {initial}
                   </div>
+
                   <span className="text-lg font-size: 24px text-gray-700">
-                    {user?.user_metadata?.display_name?.split(" ")[0] || "Usuário"}
+                    {firstName}
                   </span>
                 </button>
-
               </>
             ) : (
               <button

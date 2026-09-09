@@ -169,7 +169,7 @@ export default function SocialPage({
             onChange={setFilterSeverity}
             options={[
               { value: "Todos", label: "Todos" },
-              { value: "Perigo Extremo", label: "Perigo Extremo" },
+              { value: "Perigo Alto", label: "Perigo Alto" },
               { value: "Perigo Médio", label: "Perigo Médio" },
               { value: "Perigo Baixo", label: "Perigo Baixo" },
             ]}
