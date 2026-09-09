@@ -26,6 +26,7 @@ export interface Subreport {
 interface MainReport {
   id: number;
   user: string;
+  userId?: string | null;
   others: number;
   type: string;
   likes: number;
@@ -80,7 +81,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
   const formatDate = (date?: string | null) => {
     if (!date) return "Data não informada";
 
-    const formattedDate = date.match(/^(\d{2}\/\d{2}\/\d{4})(?:\s*-\s*\d{2}:\d{2})?$/);
+    const formattedDate = date.match(
+      /^(\d{2}\/\d{2}\/\d{4})(?:\s*-\s*\d{2}:\d{2})?$/
+    );
+
     if (formattedDate) return formattedDate[1];
 
     const parsedDate = new Date(date);
@@ -92,7 +96,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
   const formatTime = (date?: string | null) => {
     if (!date) return "Horário não informado";
 
-    const formattedTime = date.match(/^\d{2}\/\d{2}\/\d{4}\s*-\s*(\d{2}:\d{2})$/);
+    const formattedTime = date.match(
+      /^\d{2}\/\d{2}\/\d{4}\s*-\s*(\d{2}:\d{2})$/
+    );
+
     if (formattedTime) return formattedTime[1];
 
     const parsedDate = new Date(date);
@@ -111,28 +118,43 @@ const ReportCard: React.FC<ReportCardProps> = ({
     const mainReport = report as MainReport;
     const mainKey = `${mainReport.id}-main`;
 
+    const canDeleteMain =
+      !!currentUserId &&
+      !!mainReport.userId &&
+      currentUserId === mainReport.userId;
+
     const mainMedia = Array.isArray(mainReport.mediaFiles)
       ? mainReport.mediaFiles.filter((file) => file?.url)
       : [];
 
     return (
-      <div className="break-inside-avoid bg-white border border-gray-300 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] p-4 bg-[#f5f5f5]">
+      <div className="relative break-inside-avoid bg-white border border-gray-300 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] p-4 bg-[#f5f5f5]">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-start gap-3 min-w-0">
-            <div className={`w-10 h-10 ${getProfileColor(mainReport.user)} rounded-full flex items-center justify-center flex-shrink-0`}>
-              <span className="text-white text-lg font-bold">{getInitial(mainReport.user)}</span>
+            <div
+              className={`w-10 h-10 ${getProfileColor(
+                mainReport.user
+              )} rounded-full flex items-center justify-center flex-shrink-0`}
+            >
+              <span className="text-white text-lg font-bold">
+                {getInitial(mainReport.user)}
+              </span>
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <p className="font-semibold text-sm truncate">{mainReport.user}</p>
+                <p className="font-semibold text-sm truncate">
+                  {mainReport.user}
+                </p>
+
                 <span className="text-xs text-gray-500">
                   • {formatDate(mainReport.occurredAt || mainReport.date)}
                 </span>
               </div>
 
               <p className="text-xs text-gray-500">
-                Bairro: {mainReport.neighborhood || "Não informado"} • {formatTime(mainReport.occurredAt || mainReport.date)}
+                Bairro: {mainReport.neighborhood || "Não informado"} •{" "}
+                {formatTime(mainReport.occurredAt || mainReport.date)}
               </p>
             </div>
           </div>
@@ -143,13 +165,16 @@ const ReportCard: React.FC<ReportCardProps> = ({
         </div>
 
         {mainReport.description && (
-          <p className="text-sm text-gray-700 mb-3">{mainReport.description}</p>
+          <p className="text-sm text-gray-700 mb-3">
+            {mainReport.description}
+          </p>
         )}
 
         {mainMedia.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mb-3">
             {mainMedia.slice(0, 3).map((file, index) => {
               const type = file.type || "";
+
               const isVideo =
                 type.startsWith("video/") ||
                 /\.(mp4|webm|mov|avi|mkv)$/i.test(file.url);
@@ -201,20 +226,51 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
         <div className="flex flex-wrap items-center gap-2 text-sm pt-3 border-t border-gray-100">
           <button
-            onClick={(e) => { e.stopPropagation(); handleIndividualReportLike(mainKey); }}
-            className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportLikes[mainKey] ? "bg-green-100 text-green-700" : "text-gray-600 hover:text-green-700 hover:bg-green-50"}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleIndividualReportLike(mainKey);
+            }}
+            className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
+              userIndividualReportLikes[mainKey]
+                ? "bg-green-100 text-green-700"
+                : "text-gray-600 hover:text-green-700 hover:bg-green-50"
+            }`}
           >
             <ThumbsUp className="w-4 h-4" />
             <span>{reportLikes[mainKey] ?? mainReport.likes}</span>
           </button>
 
           <button
-            onClick={(e) => { e.stopPropagation(); handleIndividualReportDislike(mainKey); }}
-            className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportDislikes[mainKey] ? "bg-red-100 text-red-700" : "text-gray-600 hover:text-red-700 hover:bg-red-50"}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleIndividualReportDislike(mainKey);
+            }}
+            className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
+              userIndividualReportDislikes[mainKey]
+                ? "bg-red-100 text-red-700"
+                : "text-gray-600 hover:text-red-700 hover:bg-red-50"
+            }`}
           >
             <ThumbsDown className="w-4 h-4" />
-            <span>{reportDislikes[mainKey] ?? mainReport.dislikes}</span>
+            <span>
+              {reportDislikes[mainKey] ?? mainReport.dislikes}
+            </span>
           </button>
+
+          {canDeleteMain && onDeleteReport && (
+            <button
+              type="button"
+              title="Apagar ocorrência"
+              aria-label="Apagar ocorrência"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsConfirmingDelete(true);
+              }}
+              className="ml-auto w-10 h-10 rounded-full bg-red-100 text-red-500 hover:bg-red-200 hover:text-red-600 flex items-center justify-center transition-colors"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {mainMedia.length > 0 && viewerOpen && (
@@ -223,6 +279,37 @@ const ReportCard: React.FC<ReportCardProps> = ({
             initialIndex={viewerIndex}
             onClose={() => setViewerOpen(false)}
           />
+        )}
+
+        {isConfirmingDelete && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/20 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-xs rounded-lg border border-gray-200 bg-white p-4 text-center shadow-lg">
+              <p className="text-sm font-semibold text-gray-800">
+                Deseja mesmo apagar a ocorrência?
+              </p>
+
+              <div className="mt-4 flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsConfirmingDelete(false)}
+                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Não
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await onDeleteReport?.(mainKey);
+                    setIsConfirmingDelete(false);
+                  }}
+                  className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+                >
+                  Sim
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     );
@@ -243,20 +330,30 @@ const ReportCard: React.FC<ReportCardProps> = ({
     <div className="relative break-inside-avoid bg-white border border-gray-300 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] p-4 bg-[#f5f5f5]">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className={`w-10 h-10 ${getProfileColor(subreport.author)} rounded-full flex items-center justify-center flex-shrink-0`}>
-            <span className="text-white text-lg font-bold">{getInitial(subreport.author)}</span>
+          <div
+            className={`w-10 h-10 ${getProfileColor(
+              subreport.author
+            )} rounded-full flex items-center justify-center flex-shrink-0`}
+          >
+            <span className="text-white text-lg font-bold">
+              {getInitial(subreport.author)}
+            </span>
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <p className="font-semibold text-sm truncate">{subreport.author}</p>
+              <p className="font-semibold text-sm truncate">
+                {subreport.author}
+              </p>
+
               <span className="text-xs text-gray-500">
                 • {formatDate(subreport.createdAt)}
               </span>
             </div>
 
             <p className="text-xs text-gray-500">
-              Bairro: {subreport.neighborhood || "Não informado"} • {formatTime(subreport.createdAt)}
+              Bairro: {subreport.neighborhood || "Não informado"} •{" "}
+              {formatTime(subreport.createdAt)}
             </p>
           </div>
         </div>
@@ -266,71 +363,93 @@ const ReportCard: React.FC<ReportCardProps> = ({
         </span>
       </div>
 
-      <p className="text-sm text-gray-700 mb-3">{subreport.description}</p>
+      <p className="text-sm text-gray-700 mb-3">
+        {subreport.description}
+      </p>
 
-      {subreport.hasMedia && subreport.mediaFiles && subreport.mediaFiles.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          {subreport.mediaFiles.map((file, index) => {
-            const video =
-              file.type?.startsWith("video/") ||
-              /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(file.url);
+      {subreport.hasMedia &&
+        subreport.mediaFiles &&
+        subreport.mediaFiles.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {subreport.mediaFiles.map((file, index) => {
+              const video =
+                file.type?.startsWith("video/") ||
+                /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(file.url);
 
-            return (
-              <button
-                key={`${file.url}-${index}`}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openMedia(index);
-                }}
-                className="aspect-square rounded-lg overflow-hidden bg-gray-200 relative group cursor-pointer"
-              >
-                {video ? (
-                  <video
-                    src={file.url}
-                    muted
-                    preload="metadata"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
-                  />
-                ) : (
-                  <img
-                    src={file.url}
-                    alt={file.name || "Imagem do relato"}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
-                  />
-                )}
-
-                {video && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
-                    <img
-                      src={videoPlayIcon}
-                      alt=""
-                      aria-hidden="true"
-                      className="w-16 h-16 object-contain drop-shadow-lg"
+              return (
+                <button
+                  key={`${file.url}-${index}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openMedia(index);
+                  }}
+                  className="aspect-square rounded-lg overflow-hidden bg-gray-200 relative group cursor-pointer"
+                >
+                  {video ? (
+                    <video
+                      src={file.url}
+                      muted
+                      preload="metadata"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
                     />
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+                  ) : (
+                    <img
+                      src={file.url}
+                      alt={file.name || "Imagem do relato"}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
+                    />
+                  )}
+
+                  {video && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                      <img
+                        src={videoPlayIcon}
+                        alt=""
+                        aria-hidden="true"
+                        className="w-16 h-16 object-contain drop-shadow-lg"
+                      />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
       <div className="flex flex-wrap items-center gap-2 text-sm pt-3 border-t border-gray-100">
         <button
-          onClick={(e) => { e.stopPropagation(); handleIndividualReportLike(subreport.key); }}
-          className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportLikes[subreport.key] ? "bg-green-100 text-green-700" : "text-gray-600 hover:text-green-700 hover:bg-green-50"}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleIndividualReportLike(subreport.key);
+          }}
+          className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
+            userIndividualReportLikes[subreport.key]
+              ? "bg-green-100 text-green-700"
+              : "text-gray-600 hover:text-green-700 hover:bg-green-50"
+          }`}
         >
           <ThumbsUp className="w-4 h-4" />
-          <span>{reportLikes[subreport.key] ?? subreport.likes}</span>
+          <span>
+            {reportLikes[subreport.key] ?? subreport.likes}
+          </span>
         </button>
 
         <button
-          onClick={(e) => { e.stopPropagation(); handleIndividualReportDislike(subreport.key); }}
-          className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportDislikes[subreport.key] ? "bg-red-100 text-red-700" : "text-gray-600 hover:text-red-700 hover:bg-red-50"}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleIndividualReportDislike(subreport.key);
+          }}
+          className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
+            userIndividualReportDislikes[subreport.key]
+              ? "bg-red-100 text-red-700"
+              : "text-gray-600 hover:text-red-700 hover:bg-red-50"
+          }`}
         >
           <ThumbsDown className="w-4 h-4" />
-          <span>{reportDislikes[subreport.key] ?? subreport.dislikes}</span>
+          <span>
+            {reportDislikes[subreport.key] ?? subreport.dislikes}
+          </span>
         </button>
 
         {canDelete && onDeleteReport && (

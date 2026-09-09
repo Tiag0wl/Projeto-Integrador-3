@@ -812,10 +812,54 @@ export default function App() {
     if (!user) return;
 
     try {
+      const isMainReport = reportId.endsWith("-main");
+      const occurrenceId = isMainReport
+        ? Number(reportId.replace("-main", ""))
+        : null;
+
+      if (isMainReport && Number.isFinite(occurrenceId)) {
+        const { error: reportsDeleteError } = await supabase
+          .from("user_reports")
+          .delete()
+          .eq("occurrence_id", occurrenceId);
+
+        if (reportsDeleteError) throw reportsDeleteError;
+
+        const { error: occurrenceDeleteError } = await supabase
+          .from("user_occurrences")
+          .delete()
+          .eq("id", occurrenceId)
+          .eq("user_id", user.id);
+
+        if (occurrenceDeleteError) throw occurrenceDeleteError;
+
+        setSelectedOccurrence(null);
+        setCurrentPage("social");
+
+        setReportLikes((prev) => {
+          const next = { ...prev };
+          delete next[String(occurrenceId)];
+          delete next[`${occurrenceId}-main`];
+          return next;
+        });
+
+        setReportDislikes((prev) => {
+          const next = { ...prev };
+          delete next[String(occurrenceId)];
+          delete next[`${occurrenceId}-main`];
+          return next;
+        });
+
+        await loadUserOccurrences();
+        return;
+      }
+
+      const reportNumber = Number(reportId);
+
       const { error: deleteError } = await supabase
         .from("user_reports")
         .delete()
-        .eq("id", Number(reportId))
+        .eq("id", reportNumber)
         .eq("user_id", user.id);
 
       if (deleteError) throw deleteError;
@@ -848,7 +892,9 @@ export default function App() {
       if (occurrenceError) throw occurrenceError;
 
       if (occurrence) {
-        setSelectedOccurrence(normalizeOccurrence(occurrence, occurrenceReports || []));
+        setSelectedOccurrence(
+          normalizeOccurrence(occurrence, occurrenceReports || [])
+        );
       }
     } catch (error: any) {
       console.error("Erro ao apagar relato:", error);
