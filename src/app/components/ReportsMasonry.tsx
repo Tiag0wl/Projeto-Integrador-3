@@ -9,7 +9,12 @@ interface MainReport {
   type: string;
   likes: number;
   dislikes: number;
-  description?: string;
+  neighborhood?: string;
+  severity?: string;
+  personalSeverity?: string;
+  occurredAt?: string | null;
+  date?: string;
+  mediaFiles?: Array<{ url: string; name?: string; type?: string }>;
 }
 
 interface ReportsMasonryProps {
@@ -23,6 +28,8 @@ interface ReportsMasonryProps {
   handleIndividualReportDislike: (reportKey: string) => void;
   getProfileColor: (name: string) => string;
   getInitial: (name: string) => string;
+  currentUserId?: string | null;
+  onDeleteReport?: (reportId: string) => void | Promise<void>;
 }
 
 export default function ReportsMasonry({
@@ -36,12 +43,10 @@ export default function ReportsMasonry({
   handleIndividualReportDislike,
   getProfileColor,
   getInitial,
+  currentUserId,
+  onDeleteReport,
 }: ReportsMasonryProps) {
-  const breakpointColumnsObj = {
-    default: 2,
-    1100: 2,
-    700: 1,
-  };
+  const breakpointColumnsObj = { default: 2, 1100: 2, 700: 1 };
 
   return (
     <Masonry
@@ -67,15 +72,17 @@ export default function ReportsMasonry({
       {selectedOccurrenceSubreports.map((subreport) => (
         <div key={subreport.key} className="mb-6">
           <ReportCard
-          report={subreport}
-          reportLikes={reportLikes}
-          reportDislikes={reportDislikes}
-          userIndividualReportLikes={userIndividualReportLikes}
-          userIndividualReportDislikes={userIndividualReportDislikes}
-          handleIndividualReportLike={handleIndividualReportLike}
-          handleIndividualReportDislike={handleIndividualReportDislike}
-          getProfileColor={getProfileColor}
-          getInitial={getInitial}
+            report={subreport}
+            reportLikes={reportLikes}
+            reportDislikes={reportDislikes}
+            userIndividualReportLikes={userIndividualReportLikes}
+            userIndividualReportDislikes={userIndividualReportDislikes}
+            handleIndividualReportLike={handleIndividualReportLike}
+            handleIndividualReportDislike={handleIndividualReportDislike}
+            getProfileColor={getProfileColor}
+            getInitial={getInitial}
+            currentUserId={currentUserId}
+            onDeleteReport={onDeleteReport}
           />
         </div>
       ))}

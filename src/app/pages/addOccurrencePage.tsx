@@ -20,6 +20,9 @@ interface OccurrenceForm {
   location: string;
   type: string;
   severity: string;
+  personalSeverity: string;
+  occurredDate: string;
+  occurredTime: string;
 }
 
 interface AddOccurrencePageProps {
@@ -42,7 +45,7 @@ interface AddOccurrencePageProps {
    setCurrentPage: React.Dispatch<React.SetStateAction<PageType>>;
   setSelectedOccurrence: React.Dispatch<React.SetStateAction<any>>;
 
-  saveUserOccurrence: (data: any) => Promise<any>;
+  saveUserOccurrence: (data: any, files?: File[]) => Promise<any>;
   reports: Report[];
 
   setShuffledReports: React.Dispatch<
@@ -205,8 +208,8 @@ export default function AddOccurrencePage({
             </div>
           </div>
 
-          {/* Tipo + Severidade */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Tipo + gravidade da ocorrência + perigo sofrido */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm text-gray-600 font-medium">
                 Tipo de Evento
@@ -276,10 +279,61 @@ export default function AddOccurrencePage({
                     label: "Perigo Médio",
                   },
                   {
-                    value: "Perigo Extremo",
-                    label: "Perigo Extremo",
+                    value: "Perigo Alto",
+                    label: "Perigo Alto",
                   },
                 ]}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-600 font-medium">
+                Perigo sofrido
+              </label>
+
+              <CustomDropdown
+                value={occurrenceForm.personalSeverity}
+                onChange={(value) =>
+                  setOccurrenceForm({
+                    ...occurrenceForm,
+                    personalSeverity: value,
+                  })
+                }
+                options={[
+                  { value: "Perigo Baixo", label: "Baixo" },
+                  { value: "Perigo Médio", label: "Médio" },
+                  { value: "Perigo Alto", label: "Alto" },
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Data da ocorrência
+              </label>
+              <input
+                type="date"
+                value={occurrenceForm.occurredDate}
+                onChange={(e) =>
+                  setOccurrenceForm({ ...occurrenceForm, occurredDate: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Horário da ocorrência
+              </label>
+              <input
+                type="time"
+                value={occurrenceForm.occurredTime}
+                onChange={(e) =>
+                  setOccurrenceForm({ ...occurrenceForm, occurredTime: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
             </div>
           </div>
@@ -375,6 +429,9 @@ export default function AddOccurrencePage({
                 !occurrenceForm.city ||
                 !occurrenceForm.type ||
                 !occurrenceForm.severity ||
+                !occurrenceForm.personalSeverity ||
+                !occurrenceForm.occurredDate ||
+                !occurrenceForm.occurredTime ||
                 !occurrenceForm.description
               ) {
                 alert(
@@ -389,12 +446,16 @@ export default function AddOccurrencePage({
                 } = {
                   "Perigo Baixo": "bg-green-500",
                   "Perigo Médio": "bg-yellow-500",
-                  "Perigo Extremo": "bg-red-700",
+                  "Perigo Alto": "bg-red-500",
                 };
 
                 const occurrenceData = {
                   type: occurrenceForm.type,
                   severity: occurrenceForm.severity,
+                  personalSeverity: occurrenceForm.personalSeverity,
+                  occurredAt: new Date(
+                    `${occurrenceForm.occurredDate}T${occurrenceForm.occurredTime}:00`
+                  ).toISOString(),
 
                   severityColor:
                     severityColorMap[
@@ -428,7 +489,7 @@ export default function AddOccurrencePage({
                 };
 
                 const result =
-                  await saveUserOccurrence(occurrenceData);
+                  await saveUserOccurrence(occurrenceData, attachedFiles);
 
                 if (result) {
                   const newOccurrence = {
@@ -442,12 +503,14 @@ export default function AddOccurrencePage({
                     ...occurrenceData,
 
                     date:
-                      new Date().toLocaleDateString("pt-BR") +
+                      new Date(occurrenceData.occurredAt).toLocaleDateString("pt-BR") +
                       " - " +
-                      new Date().toLocaleTimeString("pt-BR", {
+                      new Date(occurrenceData.occurredAt).toLocaleTimeString("pt-BR", {
                         hour: "2-digit",
                         minute: "2-digit",
                       }),
+
+                    occurredAt: occurrenceData.occurredAt,
 
                     user:
                       user?.user_metadata?.display_name ||
@@ -484,6 +547,9 @@ export default function AddOccurrencePage({
                     location: "",
                     type: "",
                     severity: "",
+                    personalSeverity: "",
+                    occurredDate: "",
+                    occurredTime: "",
                   });
 
                   setAttachedFiles([]);

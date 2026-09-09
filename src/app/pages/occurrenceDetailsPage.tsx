@@ -22,6 +22,8 @@ interface OccurrenceDetailsPageProps {
   handleIndividualReportDislike: (reportKey: string) => void;
   getProfileColor: (name: string) => string;
   getInitial: (name: string) => string;
+  currentUserId?: string | null;
+  onDeleteReport?: (reportId: string) => void | Promise<void>;
 }
 
 export default function OccurrenceDetailsPage({
@@ -42,6 +44,8 @@ export default function OccurrenceDetailsPage({
   handleIndividualReportDislike,
   getProfileColor,
   getInitial,
+  currentUserId,
+  onDeleteReport,
 }: OccurrenceDetailsPageProps) {
   const reportCount = Number(
     selectedOccurrence.reportsCount ??
@@ -91,12 +95,6 @@ export default function OccurrenceDetailsPage({
           </div>
         </div>
 
-        {selectedOccurrence.description && (
-          <p className="mt-5 text-gray-700 leading-relaxed">
-            {selectedOccurrence.description}
-          </p>
-        )}
-
         <div className="flex flex-wrap items-center gap-4 mt-5 pt-4 border-t border-gray-100">
           <button
             onClick={() => handleUsefulClick(selectedOccurrence.id)}
@@ -141,6 +139,8 @@ export default function OccurrenceDetailsPage({
         handleIndividualReportDislike={handleIndividualReportDislike}
         getProfileColor={getProfileColor}
         getInitial={getInitial}
+        currentUserId={currentUserId}
+        onDeleteReport={onDeleteReport}
       />
     </div>
   );

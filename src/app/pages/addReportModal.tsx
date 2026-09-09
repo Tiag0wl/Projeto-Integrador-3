@@ -22,7 +22,6 @@ interface AddReportModalProps {
   setAttachedFiles: React.Dispatch<React.SetStateAction<File[]>>;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeFile: (index: number) => void;
-  
 }
 
 export default function AddReportModal({
@@ -39,8 +38,8 @@ export default function AddReportModal({
   removeFile,
 }: AddReportModalProps) {
   return (
-    <div className="fixed inset-20 flex items-start justify-center p-4 pt-10 z-40 overflow-y-auto">
-      <div className="bg-white border-2 border-gray-400 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] max-w-2xl w-full px-[24px] py-[20px] my-[5px]">
+    <div>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 max-w-3xl mx-auto">
         <h2 className="text-2xl font-bold mb-2 text-left">Adicionar Relato</h2>
 
         {authError && (
@@ -57,21 +56,36 @@ export default function AddReportModal({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Bairro
+            </label>
             <input
               type="text"
               value={reportForm.neighborhood}
-              onChange={(e) => setReportForm({ ...reportForm, neighborhood: e.target.value })}
+              onChange={(e) =>
+                setReportForm({
+                  ...reportForm,
+                  neighborhood: e.target.value,
+                })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Ex: Centro"
+              disabled={isSubmitting}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Gravidade</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Perigo Sofrido
+            </label>
             <CustomDropdown
               value={reportForm.severity}
-              onChange={(value) => setReportForm({ ...reportForm, severity: value })}
+              onChange={(value) =>
+                setReportForm({
+                  ...reportForm,
+                  severity: value,
+                })
+              }
               options={[
                 { value: "Perigo Baixo", label: "Perigo Baixo" },
                 { value: "Perigo Médio", label: "Perigo Médio" },
@@ -81,13 +95,21 @@ export default function AddReportModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Descrição
+            </label>
             <textarea
               value={reportForm.description}
-              onChange={(e) => setReportForm({ ...reportForm, description: e.target.value })}
+              onChange={(e) =>
+                setReportForm({
+                  ...reportForm,
+                  description: e.target.value,
+                })
+              }
               rows={5}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="Conte o que você presenciou neste evento"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -105,6 +127,7 @@ export default function AddReportModal({
                 onChange={handleFileUpload}
                 className="hidden"
                 id="file-upload-report"
+                disabled={isSubmitting}
               />
 
               <label htmlFor="file-upload-report" className="cursor-pointer">
@@ -133,7 +156,8 @@ export default function AddReportModal({
                     <button
                       type="button"
                       onClick={() => removeFile(index)}
-                      className="ml-2 text-red-500 hover:text-red-700 text-sm"
+                      disabled={isSubmitting}
+                      className="ml-2 text-red-500 hover:text-red-700 text-sm disabled:opacity-50"
                     >
                       Remover
                     </button>
@@ -146,13 +170,19 @@ export default function AddReportModal({
 
         <div className="flex justify-end gap-3 mt-6">
           <button
-            onClick={() => setCurrentPage("social")}
+            type="button"
+            onClick={() => {
+              setAttachedFiles([]);
+              setCurrentPage("social");
+            }}
             disabled={isSubmitting}
             className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             Cancelar
           </button>
+
           <button
+            type="button"
             onClick={handleReportSubmit}
             disabled={isSubmitting}
             className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md disabled:opacity-50"

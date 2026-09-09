@@ -23,12 +23,14 @@ interface AppReport {
   others: number;
   type: string;
   severity: string;
+  personalSeverity: string;
   severityColor: string;
   city: string;
   neighborhood: string;
   state: string;
   location: string;
   date: string;
+  occurredAt?: string | null;
   likes: number;
   dislikes: number;
   description: string;
@@ -75,7 +77,10 @@ export default function App() {
     description: '',
     location: '',
     type: '',
-    severity: ''
+    severity: '',
+    personalSeverity: '',
+    occurredDate: '',
+    occurredTime: ''
   });
 
   // State for add-report form
@@ -196,10 +201,10 @@ export default function App() {
     const reportsCount = Number(row.reports_count ?? 1);
     const location = [row.city, row.neighborhood].filter(Boolean).join(", ") +
       (row.state ? ` - ${row.state}` : "");
-    const createdAt = row.created_at || row.date;
-    const date = createdAt
-      ? new Date(createdAt).toLocaleDateString("pt-BR") + " - " +
-      new Date(createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    const occurredAt = row.occurred_at || row.created_at || row.date;
+    const date = occurredAt
+      ? new Date(occurredAt).toLocaleDateString("pt-BR") + " - " +
+      new Date(occurredAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
       : "";
 
     return {
@@ -212,12 +217,14 @@ export default function App() {
       others: Math.max(0, reportsCount - 1),
       type: String(row.type || "Ocorrência"),
       severity: String(row.severity || "Perigo Baixo"),
+      personalSeverity: String(row.personal_severity || "Perigo Baixo"),
       severityColor: row.severity_color || getSeverityColor(row.severity),
       city: row.city || "",
       neighborhood: row.neighborhood || "",
       state: row.state || "",
       location,
       date,
+      occurredAt,
       description: row.description || "",
       likes: Number(row.likes || 0),
       dislikes: Number(row.dislikes || 0),
@@ -299,7 +306,7 @@ export default function App() {
     }
   };
 
-  const saveUserOccurrence = async (occurrence: any) => {
+  const saveUserOccurrence = async (occurrence: any, files: File[] = []) => {
     if (!user) return null;
 
     try {
@@ -310,6 +317,8 @@ export default function App() {
           author_name: user.user_metadata?.display_name || user.email || "Usuário",
           type: occurrence.type,
           severity: occurrence.severity,
+          personal_severity: occurrence.personalSeverity,
+          occurred_at: occurrence.occurredAt,
           severity_color: occurrence.severityColor,
           city: occurrence.city,
           neighborhood: occurrence.neighborhood || "",
@@ -318,12 +327,53 @@ export default function App() {
           description: occurrence.description,
           likes: 0,
           dislikes: 0,
-          reports_count: 1
+          reports_count: 1,
+          media_files: []
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      const mediaFiles: Array<{ url: string; name: string; type: string }> = [];
+
+      for (const file of files) {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const filePath = `occurrences/${user.id}/${data.id}/${Date.now()}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("report-media")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type || undefined
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from("report-media")
+          .getPublicUrl(filePath);
+
+        mediaFiles.push({
+          url: publicUrlData.publicUrl,
+          name: file.name,
+          type: file.type || "application/octet-stream"
+        });
+      }
+
+      if (mediaFiles.length > 0) {
+        const { error: mediaUpdateError } = await supabase
+          .from("user_occurrences")
+          .update({
+            media_files: mediaFiles
+          })
+          .eq("id", data.id);
+
+        if (mediaUpdateError) throw mediaUpdateError;
+        data.media_files = mediaFiles;
+      }
+
       return data;
     } catch (error) {
       console.error("Erro ao salvar ocorrência:", error);
@@ -363,6 +413,7 @@ export default function App() {
       if (error) throw error;
 
       const mediaFiles: Array<{ url: string; name: string; type: string }> = [];
+      let mediaUploadFailed = false;
 
       for (const file of files) {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -376,7 +427,11 @@ export default function App() {
             contentType: file.type || undefined
           });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Erro ao enviar mídia do relato:", uploadError);
+          mediaUploadFailed = true;
+          break;
+        }
 
         const { data: publicUrlData } = supabase.storage
           .from("report-media")
@@ -389,18 +444,19 @@ export default function App() {
         });
       }
 
-      if (mediaFiles.length > 0) {
+      if (mediaUploadFailed || mediaFiles.length > 0) {
+        const hasMedia = !mediaUploadFailed && mediaFiles.length > 0;
         const { error: mediaUpdateError } = await supabase
           .from("user_reports")
           .update({
-            has_media: true,
-            media_files: mediaFiles
+            has_media: hasMedia,
+            media_files: hasMedia ? mediaFiles : []
           })
           .eq("id", data.id);
 
         if (mediaUpdateError) throw mediaUpdateError;
-        data.has_media = true;
-        data.media_files = mediaFiles;
+        data.has_media = hasMedia;
+        data.media_files = hasMedia ? mediaFiles : [];
       }
 
       const { data: occurrence, error: occurrenceError } = await supabase
@@ -737,11 +793,60 @@ export default function App() {
         hasMedia: Boolean(item.has_media),
         mediaFiles: Array.isArray(item.media_files) ? item.media_files : [],
         createdAt: item.created_at || null,
+        userId: item.user_id || null,
         likes: Number(item.likes || reportLikes[key] || 0),
         dislikes: Number(item.dislikes || reportDislikes[key] || 0),
       };
     })
     : [];
+
+  const handleDeleteReport = async (reportId: string) => {
+    if (!user) return;
+
+    try {
+      const { error: deleteError } = await supabase
+        .from("user_reports")
+        .delete()
+        .eq("id", Number(reportId))
+        .eq("user_id", user.id);
+
+      if (deleteError) throw deleteError;
+
+      if (!selectedOccurrence) return;
+
+      const { data: occurrenceReports, error: reportsError } = await supabase
+        .from("user_reports")
+        .select("*")
+        .eq("occurrence_id", selectedOccurrence.id)
+        .order("created_at", { ascending: true });
+
+      if (reportsError) throw reportsError;
+
+      const { error: countError } = await supabase
+        .from("user_occurrences")
+        .update({ reports_count: (occurrenceReports?.length || 0) + 1 })
+        .eq("id", selectedOccurrence.id);
+
+      if (countError) throw countError;
+
+      await loadUserOccurrences();
+
+      const { data: occurrence, error: occurrenceError } = await supabase
+        .from("user_occurrences")
+        .select("*")
+        .eq("id", selectedOccurrence.id)
+        .single();
+
+      if (occurrenceError) throw occurrenceError;
+
+      if (occurrence) {
+        setSelectedOccurrence(normalizeOccurrence(occurrence, occurrenceReports || []));
+      }
+    } catch (error: any) {
+      console.error("Erro ao apagar relato:", error);
+      alert(error.message || "Não foi possível apagar o relato. Tente novamente.");
+    }
+  };
 
   if (loading) {
     return (
@@ -882,6 +987,8 @@ export default function App() {
             }
             getProfileColor={getProfileColor}
             getInitial={getInitial}
+            currentUserId={user?.id}
+            onDeleteReport={handleDeleteReport}
           />
         )}
 
