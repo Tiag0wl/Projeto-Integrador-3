@@ -147,7 +147,7 @@ export default function AddReportModal({
                 {attachedFiles.map((file, index) => (
                   <div
                     key={`${file.name}-${index}`}
-                    className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer flex items-center text-left relative"
                   >
                     <span className="text-sm text-gray-600 truncate flex-1">
                       {file.name}

@@ -6,7 +6,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-import {ImageWithFallback } from "../components/ImageWithFallback.tsx";
+import { ImageWithFallback } from "../components/ImageWithFallback.tsx";
 import type { PageType } from "../App";
 
 interface News {
@@ -48,10 +48,9 @@ export default function HomePage({
             Informação que salva vidas
           </h1>
 
-          <p className="text-white/90 mb-6 max-w-xl">
+          <p className="text-white/90 mb-6 w-[90%] max-w-[600px]">
             Acompanhe alertas em tempo real, acesse orientações
-            de segurança e compartilhe relatos sobre eventos
-            climáticos na sua região. Juntos somos mais fortes.
+            de segurança e compartilhe relatos sobre eventos climáticos na sua região. Juntos somos mais fortes.
           </p>
 
           <div className="flex gap-4">
@@ -169,13 +168,12 @@ export default function HomePage({
               <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
                   <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full ${
-                      news.category === "Crítico"
+                    className={`text-xs font-bold px-3 py-1 rounded-full ${news.category === "Crítico"
                         ? "bg-red-100 text-red-700"
                         : news.category === "Alerta"
-                        ? "bg-yellow-100 text-[#f6a511]"
-                        : "bg-green-100 text-green-700"
-                    }`}
+                          ? "bg-yellow-100 text-[#f6a511]"
+                          : "bg-green-100 text-green-700"
+                      }`}
                   >
                     {news.category}
                   </span>

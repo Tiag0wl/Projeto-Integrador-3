@@ -39,10 +39,10 @@ interface AppReport {
   authorName?: string;
   userReports?: any[];
   mediaFiles?: Array<{
-  url: string;
-  name?: string;
-  type?: string;
-}>;
+    url: string;
+    name?: string;
+    type?: string;
+  }>;
 }
 
 export type PageType = "home" | "social" | "safety" | "documents" | "login" | "profile" | "add-occurrence" | "add-report";
@@ -233,8 +233,6 @@ export default function App() {
   };
 
   const loadUserOccurrences = async () => {
-    if (!user) return [];
-
     try {
       const { data, error } = await supabase
         .from("user_occurrences")
@@ -282,19 +280,19 @@ export default function App() {
       setNotUsefulCounts(Object.fromEntries(normalized.map((r) => [r.id, r.dislikes])));
       setShuffledReports(normalized);
 
-      setMyUserReports(
-        occurrencesWithReports.flatMap(({ occurrence, reports: occurrenceReports }) =>
-          occurrenceReports
-            .filter((report: any) => report.user_id === user.id)
-            .map((report: any) => ({
-              ...report,
-              occurrence_id: occurrence.id,
-              occurrence_type: occurrence.type,
-              occurrence_location: [occurrence.city, occurrence.neighborhood]
-                .filter(Boolean)
-                .join(", ") + (occurrence.state ? ` - ${occurrence.state}` : ""),
-            }))
-        )
+      setMyUserReports(user ? occurrencesWithReports.flatMap(({ occurrence, reports: occurrenceReports }) =>
+        occurrenceReports
+          .filter((report: any) => report.user_id === user.id)
+          .map((report: any) => ({
+            ...report,
+            occurrence_id: occurrence.id,
+            occurrence_type: occurrence.type,
+            occurrence_location: [occurrence.city, occurrence.neighborhood]
+              .filter(Boolean)
+              .join(", ") + (occurrence.state ? ` - ${occurrence.state}` : ""),
+          }))
+      )
+        : []
       );
 
       return normalized;
@@ -480,7 +478,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (user) loadUserOccurrences();
+    loadUserOccurrences();
   }, [user]);
 
   useEffect(() => {
