@@ -124,7 +124,7 @@ export default function SocialPage({
               ? setCurrentPage("add-occurrence")
               : setCurrentPage("login")
           }
-          className="bg-[#089448] hover:bg-[#089448] text-white rounded-md font-medium transition-colors custom-button px-6 py-2"
+          className="bg-[#089448] hover:bg-[#087b3d] text-white rounded-md font-medium transition-colors custom-button px-6 py-2"
         >
           + Adicionar Ocorrência
         </button>
@@ -139,24 +139,7 @@ export default function SocialPage({
             Filtros:
           </span>
         </div>
-
-        {/* Cidade */}
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600 font-medium">
-            Cidade:
-          </label>
-
-          <CustomDropdown
-            value={filterCity}
-            onChange={setFilterCity}
-            options={[
-              { value: "Todas", label: "Todas" },
-              { value: "Erechim", label: "Erechim" },
-              { value: "Porto Alegre", label: "Porto Alegre" },
-              { value: "Caxias do Sul", label: "Caxias do Sul" },
-            ]}
-          />
-        </div>
+        
 
         {/* Perigo */}
         <div className="flex items-center gap-2">
