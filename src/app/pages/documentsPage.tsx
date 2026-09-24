@@ -8,6 +8,7 @@ interface Document {
   pages: number;
   size: string;
   downloads: number;
+  url: string;
 }
 
 interface DocumentsPageProps {
@@ -60,11 +61,10 @@ export default function DocumentsPage({
               <button
                 key={category}
                 onClick={() => handleFilterChange(category)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  selectedCategory === category
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${selectedCategory === category
                     ? "bg-[#ffb000] text-white hover:bg-[#ffb000]"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 {category}
               </button>
@@ -75,11 +75,10 @@ export default function DocumentsPage({
 
       {/* Documents Grid */}
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-200 ${
-          isAnimating
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-200 ${isAnimating
             ? "opacity-0 scale-95"
             : "opacity-100 scale-100"
-        }`}
+          }`}
       >
         {filteredDocuments
           .slice(0, documentsLimit)
@@ -114,10 +113,16 @@ export default function DocumentsPage({
                 <span>{doc.downloads} downloads</span>
               </div>
 
-              <button className="w-full bg-[#FFCB04] hover:bg-[#ffb000] text-white py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2">
+              <a
+                href={doc.url}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-[#FFCB04] hover:bg-[#ffb000] text-white py-2 rounded-md font-medium transition-colors flex items-center justify-center gap-2"
+              >
                 <Download className="w-4 h-4" />
                 Baixar PDF
-              </button>
+              </a>
             </div>
           ))}
       </div>
