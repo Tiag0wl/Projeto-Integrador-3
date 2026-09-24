@@ -53,6 +53,7 @@ interface ReportCardProps {
   getInitial: (name: string) => string;
   currentUserId?: string | null;
   onDeleteReport?: (reportId: string) => void | Promise<void>;
+  onDeleteOccurrence?: (occurrenceId: number | string) => void | Promise<void>;
 }
 
 const ReportCard: React.FC<ReportCardProps> = ({
@@ -68,6 +69,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
   getInitial,
   currentUserId,
   onDeleteReport,
+  onDeleteOccurrence,
 }) => {
   const [viewerOpen, setViewerOpen] = React.useState(false);
   const [viewerIndex, setViewerIndex] = React.useState(0);
@@ -230,11 +232,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
               e.stopPropagation();
               handleIndividualReportLike(mainKey);
             }}
-            className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
-              userIndividualReportLikes[mainKey]
+            className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportLikes[mainKey]
                 ? "bg-green-100 text-green-700"
                 : "text-gray-600 hover:text-green-700 hover:bg-green-50"
-            }`}
+              }`}
           >
             <ThumbsUp className="w-4 h-4" />
             <span>{reportLikes[mainKey] ?? mainReport.likes}</span>
@@ -245,11 +246,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
               e.stopPropagation();
               handleIndividualReportDislike(mainKey);
             }}
-            className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
-              userIndividualReportDislikes[mainKey]
+            className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportDislikes[mainKey]
                 ? "bg-red-100 text-red-700"
                 : "text-gray-600 hover:text-red-700 hover:bg-red-50"
-            }`}
+              }`}
           >
             <ThumbsDown className="w-4 h-4" />
             <span>
@@ -257,7 +257,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
             </span>
           </button>
 
-          {canDeleteMain && onDeleteReport && (
+          {canDeleteMain && onDeleteOccurrence && (
             <button
               type="button"
               title="Apagar ocorrência"
@@ -300,7 +300,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 <button
                   type="button"
                   onClick={async () => {
-                    await onDeleteReport?.(mainKey);
+                    await onDeleteOccurrence?.(mainReport.id);
                     setIsConfirmingDelete(false);
                   }}
                   className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
@@ -423,11 +423,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
             e.stopPropagation();
             handleIndividualReportLike(subreport.key);
           }}
-          className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
-            userIndividualReportLikes[subreport.key]
+          className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportLikes[subreport.key]
               ? "bg-green-100 text-green-700"
               : "text-gray-600 hover:text-green-700 hover:bg-green-50"
-          }`}
+            }`}
         >
           <ThumbsUp className="w-4 h-4" />
           <span>
@@ -440,11 +439,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
             e.stopPropagation();
             handleIndividualReportDislike(subreport.key);
           }}
-          className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${
-            userIndividualReportDislikes[subreport.key]
+          className={`flex items-center gap-1 rounded-md px-2 py-1 transition ${userIndividualReportDislikes[subreport.key]
               ? "bg-red-100 text-red-700"
               : "text-gray-600 hover:text-red-700 hover:bg-red-50"
-          }`}
+            }`}
         >
           <ThumbsDown className="w-4 h-4" />
           <span>

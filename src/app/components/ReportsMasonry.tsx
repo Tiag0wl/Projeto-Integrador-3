@@ -4,6 +4,7 @@ import ReportCard, { Subreport } from "./ReportCard";
 interface MainReport {
   id: number;
   user: string;
+  userId?: string | null;
   others: number;
   type: string;
   likes: number;
@@ -29,6 +30,9 @@ interface ReportsMasonryProps {
   getInitial: (name: string) => string;
   currentUserId?: string | null;
   onDeleteReport?: (reportId: string) => void | Promise<void>;
+  onDeleteOccurrence?: (
+    occurrenceId: number | string
+  ) => void | Promise<void>;
 }
 
 interface MasonryItem {
@@ -50,6 +54,7 @@ export default function ReportsMasonry({
   getInitial,
   currentUserId,
   onDeleteReport,
+  onDeleteOccurrence,
 }: ReportsMasonryProps) {
   const [columnCount, setColumnCount] = useState(2);
   const [columnItems, setColumnItems] = useState<MasonryItem[][]>([[], []]);
@@ -112,6 +117,7 @@ export default function ReportsMasonry({
 
       items.forEach((item) => {
         const element = itemRefs.current[item.key];
+
         if (element) {
           heights.set(item.key, element.getBoundingClientRect().height);
         }
@@ -124,6 +130,7 @@ export default function ReportsMasonry({
         { length: columnCount },
         () => []
       );
+
       const columnHeights = Array(columnCount).fill(0) as number[];
 
       // Mantém a ordem dos relatos e, a cada card, escolhe a coluna
@@ -145,6 +152,7 @@ export default function ReportsMasonry({
         const previousKeys = previous.map((column) =>
           column.map((item) => item.key).join("|")
         );
+
         const nextKeys = columns.map((column) =>
           column.map((item) => item.key).join("|")
         );
@@ -163,9 +171,15 @@ export default function ReportsMasonry({
         layoutFrame.current = null;
       }
     };
+
     // Recalcula quando os itens ou a quantidade de colunas mudarem.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnItems, columnCount, selectedOccurrence.id, selectedOccurrenceSubreports]);
+  }, [
+    columnItems,
+    columnCount,
+    selectedOccurrence.id,
+    selectedOccurrenceSubreports,
+  ]);
 
   // Se uma imagem/vídeo terminar de carregar e mudar a altura do card,
   // recalcula o posicionamento automaticamente.
@@ -182,6 +196,7 @@ export default function ReportsMasonry({
 
         items.forEach((item) => {
           const element = itemRefs.current[item.key];
+
           if (element) {
             heights.set(item.key, element.getBoundingClientRect().height);
           }
@@ -193,6 +208,7 @@ export default function ReportsMasonry({
           { length: columnCount },
           () => []
         );
+
         const columnHeights = Array(columnCount).fill(0) as number[];
 
         items.forEach((item) => {
@@ -212,6 +228,7 @@ export default function ReportsMasonry({
           const previousKeys = previous.map((column) =>
             column.map((item) => item.key).join("|")
           );
+
           const nextKeys = columns.map((column) =>
             column.map((item) => item.key).join("|")
           );
@@ -224,7 +241,9 @@ export default function ReportsMasonry({
     });
 
     Object.values(itemRefs.current).forEach((element) => {
-      if (element) resizeObserver.observe(element);
+      if (element) {
+        resizeObserver.observe(element);
+      }
     });
 
     return () => {
@@ -235,8 +254,14 @@ export default function ReportsMasonry({
         layoutFrame.current = null;
       }
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnItems, columnCount, selectedOccurrence.id, selectedOccurrenceSubreports]);
+  }, [
+    columnItems,
+    columnCount,
+    selectedOccurrence.id,
+    selectedOccurrenceSubreports,
+  ]);
 
   const renderItem = (item: MasonryItem) => (
     <div
@@ -259,6 +284,7 @@ export default function ReportsMasonry({
         getInitial={getInitial}
         currentUserId={currentUserId}
         onDeleteReport={onDeleteReport}
+        onDeleteOccurrence={onDeleteOccurrence}
       />
     </div>
   );

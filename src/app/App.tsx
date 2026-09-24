@@ -213,7 +213,7 @@ export default function App() {
       userId: row.user_id,
       authorName: row.author_name || undefined,
       others: Math.max(0, reportsCount - 1),
-      type: String(row.type || "Ocorrência"),
+      type: String(row.type || "Ocorrência").toUpperCase(),
       severity: String(row.severity || "Perigo Baixo"),
       personalSeverity: String(row.personal_severity || "Perigo Baixo"),
       severityColor: row.severity_color || getSeverityColor(row.severity),
@@ -233,74 +233,126 @@ export default function App() {
   };
 
   const loadUserOccurrences = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("user_occurrences")
-        .select("*")
-        .order("created_at", { ascending: false });
+  try {
+    // Busca todas as ocorrências de uma vez
+    const { data: occurrences, error: occurrencesError } = await supabase
+      .from("user_occurrences")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-      if (error) throw error;
+    if (occurrencesError) throw occurrencesError;
 
-      const occurrencesWithReports = await Promise.all(
-        (data || []).map(async (occurrence: any) => {
-          const { data: occurrenceReports, error: reportsError } = await supabase
-            .from("user_reports")
-            .select("*")
-            .eq("occurrence_id", occurrence.id)
-            .order("created_at", { ascending: true });
-
-          if (reportsError) throw reportsError;
-          return { occurrence, reports: occurrenceReports || [] };
-        })
-      );
-
-      const normalized = occurrencesWithReports.map(({ occurrence, reports: occurrenceReports }) =>
-        normalizeOccurrence(occurrence, occurrenceReports)
-      );
-
-      const likes: { [key: string]: number } = {};
-      const dislikes: { [key: string]: number } = {};
-
-      normalized.forEach((occurrence) => {
-        likes[String(occurrence.id)] = occurrence.likes;
-        dislikes[String(occurrence.id)] = occurrence.dislikes;
-        likes[`${occurrence.id}-main`] = occurrence.likes;
-        dislikes[`${occurrence.id}-main`] = occurrence.dislikes;
-
-        (occurrence.userReports || []).forEach((report: any) => {
-          const key = String(report.id);
-          likes[key] = Number(report.likes || 0);
-          dislikes[key] = Number(report.dislikes || 0);
-        });
-      });
-
-      setReportLikes(likes);
-      setReportDislikes(dislikes);
-      setUsefulCounts(Object.fromEntries(normalized.map((r) => [r.id, r.likes])));
-      setNotUsefulCounts(Object.fromEntries(normalized.map((r) => [r.id, r.dislikes])));
-      setShuffledReports(normalized);
-
-      setMyUserReports(user ? occurrencesWithReports.flatMap(({ occurrence, reports: occurrenceReports }) =>
-        occurrenceReports
-          .filter((report: any) => report.user_id === user.id)
-          .map((report: any) => ({
-            ...report,
-            occurrence_id: occurrence.id,
-            occurrence_type: occurrence.type,
-            occurrence_location: [occurrence.city, occurrence.neighborhood]
-              .filter(Boolean)
-              .join(", ") + (occurrence.state ? ` - ${occurrence.state}` : ""),
-          }))
-      )
-        : []
-      );
-
-      return normalized;
-    } catch (error) {
-      console.error("Erro ao carregar ocorrências e relatos:", error);
+    // Se não houver ocorrências, limpa os estados e encerra
+    if (!occurrences || occurrences.length === 0) {
+      setReportLikes({});
+      setReportDislikes({});
+      setUsefulCounts({});
+      setNotUsefulCounts({});
+      setShuffledReports([]);
+      setMyUserReports([]);
       return [];
     }
-  };
+
+    // Busca TODOS os relatos de uma vez
+    const occurrenceIds = occurrences.map((occurrence: any) => occurrence.id);
+
+    const { data: allReports, error: reportsError } = await supabase
+      .from("user_reports")
+      .select("*")
+      .in("occurrence_id", occurrenceIds)
+      .order("created_at", { ascending: true });
+
+    if (reportsError) throw reportsError;
+
+    // Agrupa os relatos por ocorrência
+    const reportsByOccurrence = new Map<number, any[]>();
+
+    (allReports || []).forEach((report: any) => {
+      const occurrenceId = Number(report.occurrence_id);
+
+      if (!reportsByOccurrence.has(occurrenceId)) {
+        reportsByOccurrence.set(occurrenceId, []);
+      }
+
+      reportsByOccurrence.get(occurrenceId)!.push(report);
+    });
+
+    // Junta cada ocorrência com seus respectivos relatos
+    const occurrencesWithReports = occurrences.map((occurrence: any) => ({
+      occurrence,
+      reports: reportsByOccurrence.get(Number(occurrence.id)) || [],
+    }));
+
+    const normalized = occurrencesWithReports.map(
+      ({ occurrence, reports: occurrenceReports }) =>
+        normalizeOccurrence(occurrence, occurrenceReports)
+    );
+
+    // Monta os likes/dislikes
+    const likes: { [key: string]: number } = {};
+    const dislikes: { [key: string]: number } = {};
+
+    normalized.forEach((occurrence) => {
+      likes[String(occurrence.id)] = occurrence.likes;
+      dislikes[String(occurrence.id)] = occurrence.dislikes;
+
+      likes[`${occurrence.id}-main`] = occurrence.likes;
+      dislikes[`${occurrence.id}-main`] = occurrence.dislikes;
+
+      (occurrence.userReports || []).forEach((report: any) => {
+        const key = String(report.id);
+
+        likes[key] = Number(report.likes || 0);
+        dislikes[key] = Number(report.dislikes || 0);
+      });
+    });
+
+    setReportLikes(likes);
+    setReportDislikes(dislikes);
+
+    setUsefulCounts(
+      Object.fromEntries(
+        normalized.map((report) => [report.id, report.likes])
+      )
+    );
+
+    setNotUsefulCounts(
+      Object.fromEntries(
+        normalized.map((report) => [report.id, report.dislikes])
+      )
+    );
+
+    setShuffledReports(normalized);
+
+    // Relatos do usuário logado
+    setMyUserReports(
+      user
+        ? occurrencesWithReports.flatMap(
+            ({ occurrence, reports: occurrenceReports }) =>
+              occurrenceReports
+                .filter((report: any) => report.user_id === user.id)
+                .map((report: any) => ({
+                  ...report,
+                  occurrence_id: occurrence.id,
+                  occurrence_type: occurrence.type,
+                  occurrence_location:
+                    [occurrence.city, occurrence.neighborhood]
+                      .filter(Boolean)
+                      .join(", ") +
+                    (occurrence.state
+                      ? ` - ${occurrence.state}`
+                      : ""),
+                }))
+          )
+        : []
+    );
+
+    return normalized;
+  } catch (error) {
+    console.error("Erro ao carregar ocorrências e relatos:", error);
+    return [];
+  }
+};
 
   const saveUserOccurrence = async (occurrence: any, files: File[] = []) => {
     if (!user) return null;
@@ -311,7 +363,7 @@ export default function App() {
         .insert({
           user_id: user.id,
           author_name: user.user_metadata?.display_name || user.email || "Usuário",
-          type: occurrence.type,
+          type: String(occurrence.type || "Ocorrência").trim().toUpperCase(),
           severity: occurrence.severity,
           personal_severity: occurrence.personalSeverity,
           occurred_at: occurrence.occurredAt,
@@ -574,6 +626,11 @@ export default function App() {
 
   // Votos dos relatos individuais. O contador é atualizado no Supabase e na tela.
   const handleIndividualReportLike = async (reportKey: string) => {
+    if (!user) {
+      setCurrentPage("login");
+      return;
+    }
+
     const wasLiked = !!userIndividualReportLikes[reportKey];
     const wasDisliked = !!userIndividualReportDislikes[reportKey];
     const currentLikes = Number(reportLikes[reportKey] || 0);
@@ -596,6 +653,11 @@ export default function App() {
   };
 
   const handleIndividualReportDislike = async (reportKey: string) => {
+    if (!user) {
+      setCurrentPage("login");
+      return;
+    }
+
     const wasLiked = !!userIndividualReportLikes[reportKey];
     const wasDisliked = !!userIndividualReportDislikes[reportKey];
     const currentLikes = Number(reportLikes[reportKey] || 0);
@@ -619,6 +681,11 @@ export default function App() {
 
   // Votos da ocorrência principal. Persistidos no Supabase.
   const handleUsefulClick = async (reportId: number) => {
+    if (!user) {
+      setCurrentPage("login");
+      return;
+    }
+
     const wasUseful = !!usefulReports[reportId];
     const wasNotUseful = !!notUsefulReports[reportId];
     const occurrence = reports.find((report) => report.id === reportId);
@@ -646,6 +713,11 @@ export default function App() {
   };
 
   const handleNotUsefulClick = async (reportId: number) => {
+    if (!user) {
+      setCurrentPage("login");
+      return;
+    }
+
     const wasUseful = !!usefulReports[reportId];
     const wasNotUseful = !!notUsefulReports[reportId];
     const occurrence = reports.find((report) => report.id === reportId);
@@ -810,48 +882,6 @@ export default function App() {
     if (!user) return;
 
     try {
-      const isMainReport = reportId.endsWith("-main");
-      const occurrenceId = isMainReport
-        ? Number(reportId.replace("-main", ""))
-        : null;
-
-      if (isMainReport && Number.isFinite(occurrenceId)) {
-        const { error: reportsDeleteError } = await supabase
-          .from("user_reports")
-          .delete()
-          .eq("occurrence_id", occurrenceId);
-
-        if (reportsDeleteError) throw reportsDeleteError;
-
-        const { error: occurrenceDeleteError } = await supabase
-          .from("user_occurrences")
-          .delete()
-          .eq("id", occurrenceId)
-          .eq("user_id", user.id);
-
-        if (occurrenceDeleteError) throw occurrenceDeleteError;
-
-        setSelectedOccurrence(null);
-        setCurrentPage("social");
-
-        setReportLikes((prev) => {
-          const next = { ...prev };
-          delete next[String(occurrenceId)];
-          delete next[`${occurrenceId}-main`];
-          return next;
-        });
-
-        setReportDislikes((prev) => {
-          const next = { ...prev };
-          delete next[String(occurrenceId)];
-          delete next[`${occurrenceId}-main`];
-          return next;
-        });
-
-        await loadUserOccurrences();
-        return;
-      }
-
       const reportNumber = Number(reportId);
 
       const { error: deleteError } = await supabase
@@ -874,7 +904,7 @@ export default function App() {
 
       const { error: countError } = await supabase
         .from("user_occurrences")
-        .update({ reports_count: (occurrenceReports?.length || 0) + 1 })
+        .update({ reports_count: occurrenceReports?.length || 0 })
         .eq("id", selectedOccurrence.id);
 
       if (countError) throw countError;
@@ -897,6 +927,120 @@ export default function App() {
     } catch (error: any) {
       console.error("Erro ao apagar relato:", error);
       alert(error.message || "Não foi possível apagar o relato. Tente novamente.");
+    }
+  };
+
+  const handleDeleteOccurrence = async (occurrenceId: number | string) => {
+    if (!user) {
+      setCurrentPage("login");
+      return;
+    }
+
+    const id = Number(occurrenceId);
+
+    if (!Number.isFinite(id)) {
+      console.error("ID da ocorrência inválido:", occurrenceId);
+      return;
+    }
+
+    try {
+      // Confirma que a ocorrência pertence ao usuário logado.
+      const { data: occurrence, error: occurrenceCheckError } = await supabase
+        .from("user_occurrences")
+        .select("id, user_id")
+        .eq("id", id)
+        .single();
+
+      if (occurrenceCheckError) throw occurrenceCheckError;
+
+      if (!occurrence || occurrence.user_id !== user.id) {
+        throw new Error(
+          "Você só pode apagar uma ocorrência criada pela sua conta."
+        );
+      }
+
+      /*
+       * Apaga os relatos ligados à ocorrência.
+       * Isso precisa estar permitido pela política DELETE de user_reports
+       * para o usuário que criou a ocorrência.
+       */
+      const { error: reportsDeleteError } = await supabase
+        .from("user_reports")
+        .delete()
+        .eq("occurrence_id", id);
+
+      if (reportsDeleteError) throw reportsDeleteError;
+
+      // Agora apaga a própria ocorrência, garantindo o proprietário.
+      const { data: deletedOccurrence, error: occurrenceDeleteError } =
+        await supabase
+          .from("user_occurrences")
+          .delete()
+          .eq("id", id)
+          .eq("user_id", user.id)
+          .select("id")
+          .maybeSingle();
+
+      if (occurrenceDeleteError) throw occurrenceDeleteError;
+
+      if (!deletedOccurrence) {
+        throw new Error(
+          "A ocorrência não foi apagada. Verifique as políticas de DELETE do Supabase."
+        );
+      }
+
+      // Limpa imediatamente a ocorrência aberta.
+      setSelectedOccurrence(null);
+      setCurrentPage("social");
+
+      // Limpa os votos dela do estado local.
+      setReportLikes((prev) => {
+        const next = { ...prev };
+        delete next[String(id)];
+        delete next[`${id}-main`];
+        return next;
+      });
+
+      setReportDislikes((prev) => {
+        const next = { ...prev };
+        delete next[String(id)];
+        delete next[`${id}-main`];
+        return next;
+      });
+
+      setUsefulReports((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+
+      setNotUsefulReports((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+
+      setUsefulCounts((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+
+      setNotUsefulCounts((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+
+      // Recarrega a lista já sem a ocorrência.
+      await loadUserOccurrences();
+    } catch (error: any) {
+      console.error("Erro ao apagar ocorrência:", error);
+
+      alert(
+        error?.message ||
+          "Não foi possível apagar a ocorrência. Verifique as permissões do Supabase."
+      );
     }
   };
 
@@ -1088,6 +1232,7 @@ export default function App() {
             getInitial={getInitial}
             currentUserId={user?.id}
             onDeleteReport={handleDeleteReport}
+            onDeleteOccurrence={handleDeleteOccurrence}
           />
         )}
 

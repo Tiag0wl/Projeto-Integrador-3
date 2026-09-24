@@ -1,6 +1,6 @@
 import { AlertTriangle, Camera } from "lucide-react";
 
-import {CustomDropdown} from "../components/CustomDropdown";
+import { CustomDropdown } from "../components/CustomDropdown";
 import { PageType } from "../App";
 
 interface Report {
@@ -40,10 +40,10 @@ interface AddOccurrencePageProps {
 
   removeFile: (index: number) => void;
 
-   setCurrentPage: React.Dispatch<React.SetStateAction<PageType>>;
+  setCurrentPage: React.Dispatch<React.SetStateAction<PageType>>;
   setSelectedOccurrence: React.Dispatch<React.SetStateAction<any>>;
 
-  saveUserOccurrence: (data: any, files?: File[]) => Promise<any>;
+  saveUserOccurrence: (data: any) => Promise<any>;
   reports: Report[];
 
   setShuffledReports: React.Dispatch<
@@ -55,6 +55,7 @@ interface AddOccurrencePageProps {
   >;
 
   user?: {
+    id?: string;
     user_metadata?: {
       display_name?: string;
     };
@@ -206,8 +207,8 @@ export default function AddOccurrencePage({
             </div>
           </div>
 
-          {/* Tipo + gravidade da ocorrência + perigo sofrido */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Tipo + Severidade */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-gray-600 font-medium">
                 Tipo de Evento
@@ -283,27 +284,6 @@ export default function AddOccurrencePage({
                 ]}
               />
             </div>
-
-            <div>
-              <label className="text-sm text-gray-600 font-medium">
-                Perigo sofrido
-              </label>
-
-              <CustomDropdown
-                value={occurrenceForm.personalSeverity}
-                onChange={(value) =>
-                  setOccurrenceForm({
-                    ...occurrenceForm,
-                    personalSeverity: value,
-                  })
-                }
-                options={[
-                  { value: "Perigo Baixo", label: "Baixo" },
-                  { value: "Perigo Médio", label: "Médio" },
-                  { value: "Perigo Alto", label: "Alto" },
-                ]}
-              />
-            </div>
           </div>
 
           {/* Descrição */}
@@ -363,7 +343,7 @@ export default function AddOccurrencePage({
                 {attachedFiles.map((file, index) => (
                   <div
                     key={index}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer flex items-center text-left relative"
+                    className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
                   >
                     <span className="text-sm text-gray-600 truncate flex-1">
                       {file.name}
@@ -397,7 +377,6 @@ export default function AddOccurrencePage({
                 !occurrenceForm.city ||
                 !occurrenceForm.type ||
                 !occurrenceForm.severity ||
-                !occurrenceForm.personalSeverity ||
                 !occurrenceForm.description
               ) {
                 alert(
@@ -416,16 +395,12 @@ export default function AddOccurrencePage({
                 };
 
                 const occurrenceData = {
-                  type: occurrenceForm.type,
+                  type: occurrenceForm.type.trim().toUpperCase(),
                   severity: occurrenceForm.severity,
-                  personalSeverity: occurrenceForm.personalSeverity,
-
-                  // Data e hora registradas automaticamente no momento do envio.
-                  occurredAt: new Date().toISOString(),
 
                   severityColor:
                     severityColorMap[
-                      occurrenceForm.severity
+                    occurrenceForm.severity
                     ] || "bg-gray-500",
 
                   city: occurrenceForm.city,
@@ -438,15 +413,13 @@ export default function AddOccurrencePage({
 
                   location:
                     occurrenceForm.location ||
-                    `${occurrenceForm.city}${
+                    `${occurrenceForm.city}${occurrenceForm.neighborhood
+                      ? ", " +
                       occurrenceForm.neighborhood
-                        ? ", " +
-                          occurrenceForm.neighborhood
-                        : ""
-                    }${
-                      occurrenceForm.state
-                        ? " - " + occurrenceForm.state
-                        : ""
+                      : ""
+                    }${occurrenceForm.state
+                      ? " - " + occurrenceForm.state
+                      : ""
                     }`,
 
                   likes: 0,
@@ -455,7 +428,7 @@ export default function AddOccurrencePage({
                 };
 
                 const result =
-                  await saveUserOccurrence(occurrenceData, attachedFiles);
+                  await saveUserOccurrence(occurrenceData);
 
                 if (result) {
                   const newOccurrence = {
@@ -468,15 +441,20 @@ export default function AddOccurrencePage({
 
                     ...occurrenceData,
 
+                    userId: result.user_id || user?.id || null,
+                    authorName:
+                      result.author_name ||
+                      user?.user_metadata?.display_name ||
+                      user?.email ||
+                      "Usuário",
+
                     date:
-                      new Date(occurrenceData.occurredAt).toLocaleDateString("pt-BR") +
+                      new Date().toLocaleDateString("pt-BR") +
                       " - " +
-                      new Date(occurrenceData.occurredAt).toLocaleTimeString("pt-BR", {
+                      new Date().toLocaleTimeString("pt-BR", {
                         hour: "2-digit",
                         minute: "2-digit",
                       }),
-
-                    occurredAt: occurrenceData.occurredAt,
 
                     user:
                       user?.user_metadata?.display_name ||
@@ -513,6 +491,7 @@ export default function AddOccurrencePage({
                     location: "",
                     type: "",
                     severity: "",
+
                     personalSeverity: "",
                   });
 

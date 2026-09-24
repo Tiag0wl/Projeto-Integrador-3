@@ -24,6 +24,7 @@ interface OccurrenceDetailsPageProps {
   getInitial: (name: string) => string;
   currentUserId?: string | null;
   onDeleteReport?: (reportId: string) => void | Promise<void>;
+  onDeleteOccurrence?: (occurrenceId: number | string) => void | Promise<void>;
 }
 
 export default function OccurrenceDetailsPage({
@@ -46,6 +47,7 @@ export default function OccurrenceDetailsPage({
   getInitial,
   currentUserId,
   onDeleteReport,
+  onDeleteOccurrence,
 }: OccurrenceDetailsPageProps) {
   const reportCount = Number(
     selectedOccurrence.reportsCount ??
@@ -141,6 +143,7 @@ export default function OccurrenceDetailsPage({
         getInitial={getInitial}
         currentUserId={currentUserId}
         onDeleteReport={onDeleteReport}
+        onDeleteOccurrence={onDeleteOccurrence}
       />
     </div>
   );

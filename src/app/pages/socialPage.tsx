@@ -7,7 +7,7 @@ import {
   FileText,
 } from "lucide-react";
 
-import {CustomDropdown} from "../components/CustomDropdown";
+import { CustomDropdown } from "../components/CustomDropdown";
 import type { PageType } from "../App";
 
 interface SocialPageProps {
@@ -139,7 +139,7 @@ export default function SocialPage({
             Filtros:
           </span>
         </div>
-        
+
 
         {/* Perigo */}
         <div className="flex items-center gap-2">
@@ -165,20 +165,22 @@ export default function SocialPage({
             Tipo:
           </label>
 
-          <CustomDropdown
-            value={filterType}
-            onChange={setFilterType}
-            options={[
-              { value: "Todos", label: "Todos" },
-              { value: "GRANIZO", label: "Granizo" },
-              { value: "ALAGAMENTO", label: "Alagamento" },
-              { value: "VENDAVAL", label: "Vendaval" },
-              { value: "TEMPESTADE", label: "Tempestade" },
-              { value: "ENCHENTE", label: "Enchente" },
-              { value: "DESLIZAMENTO", label: "Deslizamento" },
-              { value: "CICLONE", label: "Ciclone" },
-            ]}
-          />
+          <div className="w-[140px]">
+            <CustomDropdown
+              value={filterType}
+              onChange={setFilterType}
+              options={[
+                { value: "Todos", label: "Todos" },
+                { value: "GRANIZO", label: "Granizo" },
+                { value: "ALAGAMENTO", label: "Alagamento" },
+                { value: "VENDAVAL", label: "Vendaval" },
+                { value: "TEMPESTADE", label: "Tempestade" },
+                { value: "ENCHENTE", label: "Enchente" },
+                { value: "DESLIZAMENTO", label: "Deslizamento" },
+                { value: "CICLONE", label: "Ciclone" },
+              ]}
+            />
+          </div>
         </div>
 
         {/* Data */}
@@ -211,11 +213,10 @@ export default function SocialPage({
 
       {/* Reports Grid */}
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 transition-all duration-200 ${
-          isAnimating
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 transition-all duration-200 ${isAnimating
             ? "opacity-0 scale-95"
             : "opacity-100 scale-100"
-        }`}
+          }`}
       >
 
         {filteredReports.length > 0 ? (
@@ -287,11 +288,10 @@ export default function SocialPage({
                           e.stopPropagation();
                           handleUsefulClick(report.id);
                         }}
-                        className={`flex items-center gap-1 text-sm font-medium ${
-                          usefulReports[report.id]
+                        className={`flex items-center gap-1 text-sm font-medium ${usefulReports[report.id]
                             ? "text-green-600"
                             : "text-gray-600 hover:text-green-600"
-                        } transition-colors`}
+                          } transition-colors`}
                       >
                         <ThumbsUp className="w-4 h-4" />
 
@@ -306,11 +306,10 @@ export default function SocialPage({
                           e.stopPropagation();
                           handleNotUsefulClick(report.id);
                         }}
-                        className={`flex items-center gap-1 text-sm font-medium ${
-                          notUsefulReports[report.id]
+                        className={`flex items-center gap-1 text-sm font-medium ${notUsefulReports[report.id]
                             ? "text-red-600"
                             : "text-gray-600 hover:text-red-600"
-                        } transition-colors`}
+                          } transition-colors`}
                       >
                         <ThumbsDown className="w-4 h-4" />
 
