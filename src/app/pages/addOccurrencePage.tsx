@@ -10,6 +10,10 @@ interface Report {
   date: string;
   severity: string;
   severityColor: string;
+  distanceKm?: number | null;
+  city?: string;
+  neighborhood?: string;
+  state?: string;
 }
 
 interface OccurrenceForm {
@@ -25,6 +29,9 @@ interface OccurrenceForm {
 
 interface AddOccurrencePageProps {
   sortedReports: Report[];
+  nearbyReports: Report[];
+  locationStatus: "unknown" | "loading" | "granted" | "denied" | "unavailable";
+  userLocation: { latitude: number; longitude: number } | null;
 
   occurrenceForm: OccurrenceForm;
   setOccurrenceForm: React.Dispatch<
@@ -43,7 +50,7 @@ interface AddOccurrencePageProps {
   setCurrentPage: React.Dispatch<React.SetStateAction<PageType>>;
   setSelectedOccurrence: React.Dispatch<React.SetStateAction<any>>;
 
-  saveUserOccurrence: (data: any) => Promise<any>;
+  saveUserOccurrence: (data: any, files?: File[]) => Promise<any>;
   reports: Report[];
 
   setShuffledReports: React.Dispatch<
@@ -65,6 +72,9 @@ interface AddOccurrencePageProps {
 
 export default function AddOccurrencePage({
   sortedReports,
+  nearbyReports,
+  locationStatus,
+  userLocation,
   occurrenceForm,
   setOccurrenceForm,
   attachedFiles,
@@ -93,44 +103,64 @@ export default function AddOccurrencePage({
         </p>
 
         {/* Ocorrências próximas */}
-        <div className="border border-[#ffcb04] rounded-lg p-4 mb-6 bg-[#fffbdf]">
-          <h3 className="font-semibold mb-3 flex items-center gap-2 text-[#ffa200]">
-            <AlertTriangle className="w-4 h-4" />
-            Ocorrências próximas a você agora
-          </h3>
-
-          <div className="space-y-2 max-h-40 overflow-y-auto border-2 border-[#dce1d9] rounded-[5px] p-2 custom-scroll bg-[#ffffff]">
-            {sortedReports.slice(0, 3).map((report) => (
-              <button
-                key={report.id}
-                onClick={() => {
-                  setCurrentPage("social");
-                  setSelectedOccurrence(report);
-                }}
-                className="w-full text-left p-3 bg-white rounded-md hover:bg-gray-50 transition-colors border border-[#ffcb04] bg-[#fffbdf]"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">
-                      {report.type}
-                    </p>
-
-                    <p className="text-xs text-gray-600">
-                      {report.location.split(" - ")[0]} •{" "}
-                      {report.date.split(" - ")[0]}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`text-xs px-3 py-1 rounded ${report.severityColor} text-white font-medium`}
-                  >
-                    {report.severity.toLowerCase()}
-                  </span>
-                </div>
-              </button>
-            ))}
+        {locationStatus === "denied" || locationStatus === "unavailable" ? (
+          <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4">
+            <p className="text-sm font-semibold text-red-700">
+              {locationStatus === "denied"
+                ? "Permita o acesso à sua localização no navegador para criar uma ocorrência e ver ocorrências próximas."
+                : "Não foi possível obter sua localização. Verifique as permissões de localização do navegador."}
+            </p>
           </div>
-        </div>
+        ) : nearbyReports.length > 0 ? (
+          <div className="border border-[#ffcb04] rounded-lg p-4 mb-6 bg-[#fffbdf]">
+            <h3 className="font-semibold mb-3 flex items-center gap-2 text-[#ffa200]">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="text-base">Ocorrências próximas a você agora</span>
+            </h3>
+
+            <div className="space-y-2 max-h-52 overflow-y-auto border-2 border-[#dce1d9] rounded-[5px] p-2 custom-scroll bg-[#ffffff]">
+              {nearbyReports.slice(0, 3).map((report) => (
+                <button
+                  key={report.id}
+                  onClick={() => {
+                    setCurrentPage("social");
+                    setSelectedOccurrence(report);
+                  }}
+                  className="w-full text-left p-3 bg-white rounded-md hover:bg-gray-50 transition-colors border border-[#ffcb04]"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-lg leading-tight">
+                        {report.type}
+                      </p>
+
+                      <p className="text-sm text-gray-600 mt-1">
+                        {report.city || report.location.split(" - ")[0]}
+                        {report.neighborhood ? `, ${report.neighborhood}` : ""}
+                        {report.state ? ` - ${report.state}` : ""}
+                        {report.date ? ` • ${report.date.split(" - ")[0]}` : ""}
+                      </p>
+
+                      {typeof report.distanceKm === "number" && (
+                        <p className={`text-sm mt-1 ${report.distanceKm <= 20 ? "font-bold text-green-700" : "font-medium text-green-700"}`}>
+                          {report.distanceKm < 1
+                            ? `${Math.round(report.distanceKm * 1000)} m de você`
+                            : `${report.distanceKm.toFixed(1)} km de você`}
+                        </p>
+                      )}
+                    </div>
+
+                    <span
+                      className={`text-sm px-3 py-1.5 rounded ${report.severityColor} text-white font-semibold whitespace-nowrap`}
+                    >
+                      {report.severity.toLowerCase()}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {/* Formulário */}
         <div className="space-y-4">
@@ -208,7 +238,7 @@ export default function AddOccurrencePage({
           </div>
 
           {/* Tipo + Severidade */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm text-gray-600 font-medium">
                 Tipo de Evento
@@ -257,7 +287,7 @@ export default function AddOccurrencePage({
 
             <div>
               <label className="text-sm text-gray-600 font-medium">
-                Severidade
+                Nível de Perigo 
               </label>
 
               <CustomDropdown
@@ -284,7 +314,39 @@ export default function AddOccurrencePage({
                 ]}
               />
             </div>
+
+            <div>
+              <label className="text-sm text-gray-600 font-medium">
+                Perigo sofrido por você
+              </label>
+
+              <CustomDropdown
+                value={occurrenceForm.personalSeverity}
+                onChange={(value) =>
+                  setOccurrenceForm({
+                    ...occurrenceForm,
+                    personalSeverity: value,
+                  })
+                }
+                options={[
+                  {
+                    value: "Perigo Baixo",
+                    label: "Perigo Baixo",
+                  },
+                  {
+                    value: "Perigo Médio",
+                    label: "Perigo Médio",
+                  },
+                  {
+                    value: "Perigo Alto",
+                    label: "Perigo Alto",
+                  },
+                ]}
+              />
+            </div>
           </div>
+
+          
 
           {/* Descrição */}
           <div>
@@ -373,10 +435,20 @@ export default function AddOccurrencePage({
 
           <button
             onClick={async () => {
+              if (!userLocation || locationStatus !== "granted") {
+                alert(
+                  locationStatus === "denied"
+                    ? "Para criar uma ocorrência, permita o acesso à sua localização no navegador."
+                    : "Aguardando sua localização. Permita o acesso à localização e tente novamente."
+                );
+                return;
+              }
+
               if (
                 !occurrenceForm.city ||
                 !occurrenceForm.type ||
                 !occurrenceForm.severity ||
+                !occurrenceForm.personalSeverity ||
                 !occurrenceForm.description
               ) {
                 alert(
@@ -397,6 +469,10 @@ export default function AddOccurrencePage({
                 const occurrenceData = {
                   type: occurrenceForm.type.trim().toUpperCase(),
                   severity: occurrenceForm.severity,
+                  personalSeverity: occurrenceForm.personalSeverity,
+
+                  latitude: userLocation.latitude,
+                  longitude: userLocation.longitude,
 
                   severityColor:
                     severityColorMap[
@@ -428,7 +504,7 @@ export default function AddOccurrencePage({
                 };
 
                 const result =
-                  await saveUserOccurrence(occurrenceData);
+                  await saveUserOccurrence(occurrenceData, attachedFiles);
 
                 if (result) {
                   const newOccurrence = {
@@ -471,6 +547,10 @@ export default function AddOccurrencePage({
                       "Nova Ocorrência",
 
                     isFirstReport: true,
+                    latitude: userLocation.latitude,
+                    longitude: userLocation.longitude,
+                    distanceKm: 0,
+                    personalSeverity: occurrenceData.personalSeverity,
                   };
 
                   setShuffledReports((prev) => [
@@ -518,7 +598,8 @@ export default function AddOccurrencePage({
                 );
               }
             }}
-            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
+            disabled={!user || !userLocation || locationStatus !== "granted"}
+            className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-md transition-colors"
           >
             Enviar Ocorrência
           </button>

@@ -21,9 +21,6 @@ interface SocialPageProps {
   filterSeverity: string;
   setFilterSeverity: (value: string) => void;
 
-  filterType: string;
-  setFilterType: (value: string) => void;
-
   filterDate: string;
   setFilterDate: (value: string) => void;
 
@@ -51,6 +48,19 @@ interface SocialPageProps {
   handleNotUsefulClick: (id: number) => void;
 
   loadMoreReports: () => void;
+
+  socialSort: Array<"popular" | "recent" | "nearby">;
+  setSocialSort: React.Dispatch<
+    React.SetStateAction<Array<"popular" | "recent" | "nearby">>
+  >;
+
+  locationStatus:
+    | "unknown"
+    | "loading"
+    | "granted"
+    | "denied"
+    | "unavailable";
+  userLocation: { latitude: number; longitude: number } | null;
 }
 
 export default function SocialPage({
@@ -62,9 +72,6 @@ export default function SocialPage({
 
   filterSeverity,
   setFilterSeverity,
-
-  filterType,
-  setFilterType,
 
   filterDate,
   setFilterDate,
@@ -93,6 +100,11 @@ export default function SocialPage({
   handleNotUsefulClick,
 
   loadMoreReports,
+
+  socialSort,
+  setSocialSort,
+  locationStatus,
+  userLocation,
 }: SocialPageProps) {
   return (
     <div>
@@ -132,21 +144,13 @@ export default function SocialPage({
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] mb-6 flex flex-wrap items-center gap-4 bg-[#f5f5f5]">
+      <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] mb-6 flex flex-wrap items-center gap-3 bg-[#f5f5f5]">
 
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-gray-700">
-            Filtros:
-          </span>
-        </div>
-
+        <span className="font-medium text-gray-700">Filtros:</span>
 
         {/* Perigo */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600 font-medium">
-            Perigo:
-          </label>
-
+          <span className="text-sm text-gray-600 font-medium">Perigo:</span>
           <CustomDropdown
             value={filterSeverity}
             onChange={setFilterSeverity}
@@ -159,46 +163,73 @@ export default function SocialPage({
           />
         </div>
 
-        {/* Tipo */}
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600 font-medium">
-            Tipo:
-          </label>
-
-          <div className="w-[140px]">
-            <CustomDropdown
-              value={filterType}
-              onChange={setFilterType}
-              options={[
-                { value: "Todos", label: "Todos" },
-                { value: "GRANIZO", label: "Granizo" },
-                { value: "ALAGAMENTO", label: "Alagamento" },
-                { value: "VENDAVAL", label: "Vendaval" },
-                { value: "TEMPESTADE", label: "Tempestade" },
-                { value: "ENCHENTE", label: "Enchente" },
-                { value: "DESLIZAMENTO", label: "Deslizamento" },
-                { value: "CICLONE", label: "Ciclone" },
-              ]}
-            />
-          </div>
-        </div>
-
         {/* Data */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600 font-medium">
-            Data:
-          </label>
-
+          <span className="text-sm text-gray-600 font-medium">Data:</span>
           <input
             type="text"
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
             placeholder="DD/MM/AAAA"
-            className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-32"
+            className="px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-32 bg-white"
           />
         </div>
 
-        {/* Pesquisa */}
+        {/* Ordenação - os três critérios podem ficar ativos juntos */}
+        <button
+          type="button"
+          onClick={() =>
+            setSocialSort((current) =>
+              current.includes("popular")
+                ? current.filter((item) => item !== "popular")
+                : [...current, "popular"]
+            )
+          }
+          className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            socialSort.includes("popular")
+              ? "bg-[#089448] text-white"
+              : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+          }`}
+        >
+          Mais populares
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setSocialSort((current) =>
+              current.includes("recent")
+                ? current.filter((item) => item !== "recent")
+                : [...current, "recent"]
+            )
+          }
+          className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            socialSort.includes("recent")
+              ? "bg-[#089448] text-white"
+              : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+          }`}
+        >
+          Mais recentes
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setSocialSort((current) =>
+              current.includes("nearby")
+                ? current.filter((item) => item !== "nearby")
+                : [...current, "nearby"]
+            )
+          }
+          className={`px-3 py-2 rounded-md text-sm font-medium transition-colors inline-flex items-center gap-1 ${
+            socialSort.includes("nearby")
+              ? "bg-[#089448] text-white"
+              : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100"
+          }`}
+        >
+          Próximas de você
+        </button>
+
         <div className="ml-auto">
           <input
             type="text"
@@ -208,7 +239,6 @@ export default function SocialPage({
             className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm w-56 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
           />
         </div>
-
       </div>
 
       {/* Reports Grid */}
@@ -219,7 +249,29 @@ export default function SocialPage({
           }`}
       >
 
-        {filteredReports.length > 0 ? (
+        {socialSort.includes("nearby") && !userLocation ? (
+
+          <div className="col-span-full text-center py-12">
+            <div className="text-gray-500">
+              <MapPin className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+
+              <p className="text-lg font-medium mb-2">
+                Localização necessária
+              </p>
+
+              <p className="text-sm">
+                {!user
+                  ? "Entre na sua conta para encontrar ocorrências próximas de você."
+                  : locationStatus === "denied"
+                    ? "Permita o acesso à sua localização no navegador para ordenar as ocorrências por proximidade."
+                    : locationStatus === "loading"
+                      ? "Estamos obtendo sua localização..."
+                      : "Sua localização não está disponível no momento."}
+              </p>
+            </div>
+          </div>
+
+        ) : filteredReports.length > 0 ? (
 
           filteredReports
             .slice(0, reportsLimit)
@@ -228,74 +280,94 @@ export default function SocialPage({
               <button
                 key={report.id}
                 onClick={() => setSelectedOccurrence(report)}
-                className="border-2 border-gray-300 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.15)] hover:shadow-[6px_6px_8px_rgba(0,0,0,0.25)] transition-all overflow-hidden text-left transform hover:border-gray-200 relative group bg-[#f5f5f5] hover:scale-101"
+                className="border border-gray-300 rounded-xl shadow-[6px_6px_8px_rgba(0,0,0,0.15)] hover:shadow-[6px_6px_8px_rgba(0,0,0,0.22)] transition-all overflow-hidden text-left relative group bg-white hover:border-gray-200 hover:scale-[1.005]"
               >
-
-                <div className="relative group p-4 bg-white">
-
+                <div className="relative p-5 bg-white">
                   {/* User Info */}
-                  <div className="flex items-center gap-2 mb-3">
-
+                  <div className="flex items-center gap-3 mb-4">
                     <div
-                      className={`w-8 h-8 ${getSocialProfileColor()} rounded-full flex items-center justify-center`}
+                      className={`w-12 h-12 ${getSocialProfileColor()} rounded-full flex items-center justify-center shrink-0`}
                     >
-                      <Users className="w-4 h-4 text-white" />
+                      <Users className="w-6 h-6 text-white" />
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      <p className="text-lg font-semibold truncate">
                         {report.user}
                       </p>
-
-                      <p className="text-xs text-gray-500">
+                      <p className="text-base text-gray-500">
                         + {report.others} pessoas
                       </p>
                     </div>
 
                     <span
-                      className={`text-xs px-2 py-1 rounded ${report.severityColor} text-white font-medium whitespace-nowrap`}
+                      className={`text-sm px-4 py-2 rounded-md ${report.severityColor} text-white font-semibold whitespace-nowrap`}
                     >
                       {report.severity}
                     </span>
-
                   </div>
 
                   {/* Event Type */}
-                  <h3 className="text-2xl font-bold mb-2">
+                  <h3 className="text-[30px] md:text-[40px] leading-none font-bold mb-4 tracking-tight">
                     {report.type}
                   </h3>
 
-                  {/* Location */}
-                  <p className="text-sm text-gray-600 mb-1 flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {report.location}
-                  </p>
+                  {/* Localização */}
+                  <div className="mb-2 flex items-center gap-2 text-base text-gray-600">
+                    <MapPin className="w-5 h-5 shrink-0" />
+                    <span>
+                      {report.city || report.location.split(" - ")[0]}
+                      {report.state ? ` - ${report.state}` : ""}
+                      {report.neighborhood ? ` • Bairro ${report.neighborhood}` : ""}
+                    </span>
+                  </div>
 
-                  {/* Date */}
-                  <p className="text-sm text-gray-500 mb-4 flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {report.date}
-                  </p>
+                  {/* Data / hora + proximidade */}
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-base text-gray-500 mb-5">
+                    <p className="flex items-center gap-2 whitespace-nowrap">
+                      <Clock className="w-5 h-5 shrink-0" />
+                      <span>{report.date}</span>
+                    </p>
+
+                    {report.distanceKm != null && (
+                      <p
+                        className={`flex items-center gap-2 whitespace-nowrap ${
+                          Number(report.distanceKm) <= 20
+                            ? "font-bold text-gray-700"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        <MapPin className="w-5 h-5 shrink-0" />
+                        <span>
+                          {Number(report.distanceKm) < 1
+                            ? `${Math.round(Number(report.distanceKm) * 1000)} m de você`
+                            : `${Number(report.distanceKm).toFixed(1)} km de você`}
+                        </span>
+                      </p>
+                    )}
+                  </div>
 
                   {/* Actions */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-
-                    <div className="flex items-center gap-3">
-
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-6">
                       {/* Useful */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (!user) {
+                            setCurrentPage("login");
+                            return;
+                          }
                           handleUsefulClick(report.id);
                         }}
-                        className={`flex items-center gap-1 text-sm font-medium ${usefulReports[report.id]
+                        className={`flex items-center gap-2 text-lg font-medium ${
+                          usefulReports[report.id]
                             ? "text-green-600"
                             : "text-gray-600 hover:text-green-600"
-                          } transition-colors`}
+                        } transition-colors`}
                       >
-                        <ThumbsUp className="w-4 h-4" />
-
-                        <span>
+                        <ThumbsUp className="w-5 h-5" />
+                        <span className="text-xl font-semibold">
                           {usefulCounts[report.id] || 0}
                         </span>
                       </button>
@@ -304,26 +376,26 @@ export default function SocialPage({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (!user) {
+                            setCurrentPage("login");
+                            return;
+                          }
                           handleNotUsefulClick(report.id);
                         }}
-                        className={`flex items-center gap-1 text-sm font-medium ${notUsefulReports[report.id]
+                        className={`flex items-center gap-2 text-lg font-medium ${
+                          notUsefulReports[report.id]
                             ? "text-red-600"
                             : "text-gray-600 hover:text-red-600"
-                          } transition-colors`}
+                        } transition-colors`}
                       >
-                        <ThumbsDown className="w-4 h-4" />
-
-                        <span>
+                        <ThumbsDown className="w-5 h-5" />
+                        <span className="text-xl font-semibold">
                           {notUsefulCounts[report.id] || 0}
                         </span>
                       </button>
-
                     </div>
-
                   </div>
-
                 </div>
-
               </button>
             ))
 
@@ -385,9 +457,11 @@ export default function SocialPage({
         <p className="text-sm text-blue-800">
           <strong>ℹ️ Como funciona:</strong> Clique em uma
           ocorrência para ver todos os relatos relacionados.
-          Ocorrências com mais confirmações aparecem no topo.
-          Se você foi afetado pelo mesmo evento, adicione seu
-          relato à ocorrência existente ao invés de criar uma nova.
+          Você pode ordenar por popularidade, data ou proximidade.
+          No modo "Próximas de você", as ocorrências são ordenadas
+          da mais próxima para a mais distante. Se você foi afetado
+          pelo mesmo evento, adicione seu relato à ocorrência
+          existente ao invés de criar uma nova.
         </p>
 
       </div>

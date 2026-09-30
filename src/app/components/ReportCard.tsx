@@ -116,6 +116,16 @@ const ReportCard: React.FC<ReportCardProps> = ({
   const formatSeverity = (severity?: string) =>
     (severity || "Perigo Baixo").replace(/^Perigo\s+/i, "");
 
+  const getSeverityColor = (severity?: string) => {
+    const normalized = formatSeverity(severity).toLowerCase();
+
+    if (normalized === "baixo") return "text-green-600";
+    if (normalized === "médio" || normalized === "medio") return "text-yellow-600";
+    if (normalized === "alto") return "text-red-600";
+
+    return "text-gray-500";
+  };
+
   if (isMain) {
     const mainReport = report as MainReport;
     const mainKey = `${mainReport.id}-main`;
@@ -161,8 +171,11 @@ const ReportCard: React.FC<ReportCardProps> = ({
             </div>
           </div>
 
-          <span className="text-sm text-gray-500 font-semibold text-right whitespace-nowrap flex-shrink-0">
-            Perigo sofrido: {formatSeverity(mainReport.personalSeverity)}
+          <span className="text-sm font-semibold text-right whitespace-nowrap flex-shrink-0 text-gray-500">
+            Perigo sofrido:{" "}
+            <span className={getSeverityColor(mainReport.personalSeverity)}>
+              {formatSeverity(mainReport.personalSeverity)}
+            </span>
           </span>
         </div>
 
@@ -184,7 +197,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
               return (
                 <div
                   key={`${file.url}-${index}`}
-                  className="aspect-square rounded overflow-hidden bg-gray-200 relative group cursor-pointer"
+                  className="h-25 rounded overflow-hidden bg-gray-200 relative group cursor-pointer"
                   onClick={() => !isVideo && openMedia(index)}
                   role={!isVideo ? "button" : undefined}
                   tabIndex={!isVideo ? 0 : undefined}
@@ -199,13 +212,13 @@ const ReportCard: React.FC<ReportCardProps> = ({
                     <video
                       src={file.url}
                       controls
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
+                      className="w-full h-25 object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
                     />
                   ) : (
                     <img
                       src={file.url}
                       alt={file.name || "Imagem da ocorrência"}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
+                      className="w-full h-25 object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
                       loading="lazy"
                     />
                   )}
@@ -358,8 +371,11 @@ const ReportCard: React.FC<ReportCardProps> = ({
           </div>
         </div>
 
-        <span className="text-sm text-gray-500 font-semibold text-right whitespace-nowrap flex-shrink-0">
-          Perigo sofrido: {formatSeverity(subreport.severity)}
+        <span className="text-sm font-semibold text-right whitespace-nowrap flex-shrink-0 text-gray-500">
+          Perigo sofrido:{" "}
+          <span className={getSeverityColor(subreport.severity)}>
+            {formatSeverity(subreport.severity)}
+          </span>
         </span>
       </div>
 
@@ -384,20 +400,20 @@ const ReportCard: React.FC<ReportCardProps> = ({
                     e.stopPropagation();
                     openMedia(index);
                   }}
-                  className="aspect-square rounded-lg overflow-hidden bg-gray-200 relative group cursor-pointer"
+                  className="h-25 rounded-lg overflow-hidden bg-gray-200 relative group cursor-pointer"
                 >
                   {video ? (
                     <video
                       src={file.url}
                       muted
                       preload="metadata"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
+                      className="w-full h-25 object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
                     />
                   ) : (
                     <img
                       src={file.url}
                       alt={file.name || "Imagem do relato"}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
+                      className="w-full h-25 object-cover group-hover:scale-105 transition-transform duration-200 cursor-pointer"
                     />
                   )}
 

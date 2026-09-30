@@ -36,6 +36,9 @@ interface AppReport {
   description: string;
   reportsCount: number;
   userId?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  distanceKm?: number | null;
   authorName?: string;
   userReports?: any[];
   mediaFiles?: Array<{
@@ -169,6 +172,12 @@ export default function App() {
   const [myUserReports, setMyUserReports] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  // Localização do usuário: usada para proximidade e criação de ocorrências.
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationStatus, setLocationStatus] = useState<"unknown" | "loading" | "granted" | "denied" | "unavailable">("unknown");
+  const [socialSort, setSocialSort] = useState<Array<"popular" | "recent" | "nearby">>(["popular"]);
+  const LOCATION_RADIUS_KM = 20;
+
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [isAnimating, setIsAnimating] = useState(false);
   const [reportsLimit, setReportsLimit] = useState(24);
@@ -185,6 +194,39 @@ export default function App() {
   const [notUsefulCounts, setNotUsefulCounts] = useState<{ [key: number]: number }>({});
 
   // Persistência de ocorrências e relatos no Supabase
+  const calculateDistanceKm = (
+    latitude1: number,
+    longitude1: number,
+    latitude2: number,
+    longitude2: number
+  ) => {
+    const earthRadiusKm = 6371;
+    const dLat = ((latitude2 - latitude1) * Math.PI) / 180;
+    const dLon = ((longitude2 - longitude1) * Math.PI) / 180;
+    const lat1Rad = (latitude1 * Math.PI) / 180;
+    const lat2Rad = (latitude2 * Math.PI) / 180;
+
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1Rad) *
+        Math.cos(lat2Rad) *
+        Math.sin(dLon / 2) ** 2;
+
+    return 2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const getDistanceToOccurrence = (occurrence: { latitude?: number | null; longitude?: number | null }) => {
+    if (!userLocation) return null;
+    if (occurrence.latitude == null || occurrence.longitude == null) return null;
+
+    return calculateDistanceKm(
+      userLocation.latitude,
+      userLocation.longitude,
+      Number(occurrence.latitude),
+      Number(occurrence.longitude)
+    );
+  };
+
   const getSeverityColor = (severity: string) => {
     const colors: Record<string, string> = {
       "Perigo Baixo": "bg-green-500",
@@ -211,6 +253,12 @@ export default function App() {
         ? (user?.user_metadata?.display_name || user?.email || "Usuário")
         : "Usuário"),
       userId: row.user_id,
+      latitude: row.latitude != null ? Number(row.latitude) : null,
+      longitude: row.longitude != null ? Number(row.longitude) : null,
+      distanceKm: getDistanceToOccurrence({
+        latitude: row.latitude != null ? Number(row.latitude) : null,
+        longitude: row.longitude != null ? Number(row.longitude) : null,
+      }),
       authorName: row.author_name || undefined,
       others: Math.max(0, reportsCount - 1),
       type: String(row.type || "Ocorrência").toUpperCase(),
@@ -357,6 +405,16 @@ export default function App() {
   const saveUserOccurrence = async (occurrence: any, files: File[] = []) => {
     if (!user) return null;
 
+    // Uma ocorrência só pode ser criada depois que o usuário compartilhar a localização.
+    if (!userLocation) {
+      setAuthError(
+        locationStatus === "denied"
+          ? "Para criar uma ocorrência, permita o acesso à sua localização no navegador."
+          : "Aguardando sua localização. Permita o acesso à localização e tente novamente."
+      );
+      return null;
+    }
+
     try {
       const { data, error } = await supabase
         .from("user_occurrences")
@@ -376,7 +434,9 @@ export default function App() {
           likes: 0,
           dislikes: 0,
           reports_count: 1,
-          media_files: []
+          media_files: [],
+          latitude: occurrence.latitude ?? userLocation?.latitude ?? null,
+          longitude: occurrence.longitude ?? userLocation?.longitude ?? null
         })
         .select()
         .single();
@@ -532,6 +592,73 @@ export default function App() {
   useEffect(() => {
     loadUserOccurrences();
   }, [user]);
+
+  // Solicita a localização somente enquanto o usuário estiver autenticado.
+  // Se o navegador já tiver uma decisão de permissão, ele reaproveita essa decisão.
+  useEffect(() => {
+    if (!user?.id) {
+      setUserLocation(null);
+      setLocationStatus("unknown");
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setUserLocation(null);
+      setLocationStatus("unavailable");
+      return;
+    }
+
+    let cancelled = false;
+    setLocationStatus("loading");
+
+    const updateLocation = async (latitude: number, longitude: number) => {
+      if (cancelled) return;
+
+      const location = { latitude, longitude };
+      setUserLocation(location);
+      setLocationStatus("granted");
+
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: user.id,
+            latitude,
+            longitude,
+            location_updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" }
+        );
+
+      if (error) {
+        console.error("Não foi possível salvar a localização do usuário:", error);
+      }
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        void updateLocation(position.coords.latitude, position.coords.longitude);
+      },
+      (error) => {
+        if (cancelled) return;
+
+        console.warn("Não foi possível obter a localização:", error.message);
+        setUserLocation(null);
+        setLocationStatus(
+          error.code === error.PERMISSION_DENIED ? "denied" : "unavailable"
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 15000,
+      }
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     if (currentPage === "add-report") {
@@ -818,28 +945,71 @@ export default function App() {
     }, 200);
   };
 
+  const documentsData = (mockDocuments as Array<any>).map((doc, index) => ({
+    ...doc,
+    url: doc.url ?? `/documents/${doc.id ?? index + 1}.pdf`,
+  }));
+
   const filteredDocuments =
     selectedCategory === "Todos"
-      ? mockDocuments
-      : mockDocuments.filter(
+      ? documentsData
+      : documentsData.filter(
         (doc) => doc.category === selectedCategory,
       );
 
 
-  // Ordenar relatos com prioridade para novos itens
-  const sortedReports = [...reports].sort((a, b) => {
-    const aScore = Number(a.likes || 0) - Number(a.dislikes || 0);
-    const bScore = Number(b.likes || 0) - Number(b.dislikes || 0);
+  // Calcula a distância de cada ocorrência em relação ao usuário logado.
+  const reportsWithDistance = reports.map((report) => ({
+    ...report,
+    distanceKm: getDistanceToOccurrence(report),
+  }));
 
-    if (bScore !== aScore) return bScore - aScore;
+  // Ordenação da Rede Social. Os três critérios podem ficar ativos ao mesmo tempo.
+  // A prioridade é: proximidade -> recência -> popularidade.
+  // Assim, por exemplo, ao ativar "Próximas de você" + "Mais recentes",
+  // a distância é o critério principal e a data desempata ocorrências
+  // que estão em distâncias semelhantes.
+  const sortedReports = [...reportsWithDistance].sort((a, b) => {
+    if (socialSort.includes("nearby")) {
+      const aDistance = a.distanceKm ?? Number.POSITIVE_INFINITY;
+      const bDistance = b.distanceKm ?? Number.POSITIVE_INFINITY;
 
-    // Em caso de empate, a ocorrência mais nova aparece primeiro.
-    const aDate = new Date(a.date || 0).getTime();
-    const bDate = new Date(b.date || 0).getTime();
+      if (aDistance !== bDistance) return aDistance - bDistance;
+    }
+
+    if (socialSort.includes("recent")) {
+      const aDate = a.occurredAt ? new Date(a.occurredAt).getTime() : 0;
+      const bDate = b.occurredAt ? new Date(b.occurredAt).getTime() : 0;
+
+      if (bDate !== aDate) return bDate - aDate;
+    }
+
+    if (socialSort.includes("popular")) {
+      const aScore = Number(a.likes || 0) - Number(a.dislikes || 0);
+      const bScore = Number(b.likes || 0) - Number(b.dislikes || 0);
+
+      if (bScore !== aScore) return bScore - aScore;
+    }
+
+    // Desempate final: mais recentes primeiro.
+    const aDate = a.occurredAt ? new Date(a.occurredAt).getTime() : 0;
+    const bDate = b.occurredAt ? new Date(b.occurredAt).getTime() : 0;
     return bDate - aDate;
   });
 
-  // Filtrar relatos baseado nos filtros selecionados
+  // Lista usada na tela de adicionar ocorrência: somente ocorrências
+  // dos últimos 3 dias e em um raio máximo de 20 km.
+  const recentNearbyReports = reportsWithDistance
+    .filter((report) => {
+      if (report.distanceKm == null || report.distanceKm > LOCATION_RADIUS_KM) return false;
+      const occurredAt = report.occurredAt ? new Date(report.occurredAt).getTime() : NaN;
+      if (!Number.isFinite(occurredAt)) return false;
+      const ageMs = Date.now() - occurredAt;
+      return ageMs >= 0 && ageMs <= 3 * 24 * 60 * 60 * 1000;
+    })
+    .sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+
+  // Filtrar relatos baseado nos filtros selecionados.
   const filteredReports = sortedReports.filter((report) => {
     const cityMatch = filterCity === "Todas" || report.location.includes(filterCity);
     const severityMatch = filterSeverity === "Todos" || report.severity === filterSeverity;
@@ -850,8 +1020,11 @@ export default function App() {
       report.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.description.toLowerCase().includes(searchQuery.toLowerCase());
+    // "Próximas de você" na Rede Social significa apenas ordenar por distância.
+    // Não existe limite de 20 km nesse filtro.
+    const nearbyMatch = !socialSort.includes("nearby") || report.distanceKm != null;
 
-    return cityMatch && severityMatch && typeMatch && dateMatch && searchMatch;
+    return cityMatch && severityMatch && typeMatch && dateMatch && searchMatch && nearbyMatch;
   });
 
   const selectedOccurrenceSubreports = selectedOccurrence
@@ -1176,8 +1349,6 @@ export default function App() {
             setFilterCity={setFilterCity}
             filterSeverity={filterSeverity}
             setFilterSeverity={setFilterSeverity}
-            filterType={filterType}
-            setFilterType={setFilterType}
             filterDate={filterDate}
             setFilterDate={setFilterDate}
             searchQuery={searchQuery}
@@ -1195,6 +1366,10 @@ export default function App() {
             handleUsefulClick={handleUsefulClick}
             handleNotUsefulClick={handleNotUsefulClick}
             loadMoreReports={loadMoreReports}
+            socialSort={socialSort}
+            setSocialSort={setSocialSort}
+            locationStatus={locationStatus}
+            userLocation={userLocation}
           />
         )}
 
@@ -1262,6 +1437,9 @@ export default function App() {
         {currentPage === "add-occurrence" && (
           <AddOccurrencePage
             sortedReports={sortedReports}
+            nearbyReports={recentNearbyReports}
+            locationStatus={locationStatus}
+            userLocation={userLocation}
             occurrenceForm={occurrenceForm}
             setOccurrenceForm={setOccurrenceForm}
             attachedFiles={attachedFiles}
