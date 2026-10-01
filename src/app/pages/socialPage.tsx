@@ -7,7 +7,9 @@ import {
   FileText,
 } from "lucide-react";
 
+import { useEffect, useState } from "react";
 import { CustomDropdown } from "../components/CustomDropdown";
+import { supabase } from "../lib/supabase";
 import type { PageType } from "../App";
 
 interface SocialPageProps {
@@ -106,6 +108,51 @@ export default function SocialPage({
   locationStatus,
   userLocation,
 }: SocialPageProps) {
+  const [socialInfoDismissed, setSocialInfoDismissed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDismissedState = async () => {
+      if (!user?.id) {
+        setSocialInfoDismissed(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("dismissed_social_info")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!cancelled && !error) {
+        setSocialInfoDismissed(data?.dismissed_social_info === true);
+      }
+    };
+
+    loadDismissedState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const dismissSocialInfo = async () => {
+    if (!user?.id) return;
+
+    setSocialInfoDismissed(true);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ dismissed_social_info: true })
+      .eq("id", user.id);
+
+    if (error) {
+      setSocialInfoDismissed(false);
+      console.error("Erro ao dispensar mensagem da rede social:", error);
+    }
+  };
+
   return (
     <div>
 
@@ -136,9 +183,9 @@ export default function SocialPage({
               ? setCurrentPage("add-occurrence")
               : setCurrentPage("login")
           }
-          className="bg-[#089448] hover:bg-[#087b3d] text-white rounded-md font-medium transition-colors custom-button px-6 py-2"
+          className="bg-[#089448] hover:bg-[#087b3d] text-white rounded-md font-semibold text-[20px] transition-colors custom-button px-6 py-3"
         >
-          + Adicionar Ocorrência
+          + Criar Ocorrência
         </button>
 
       </div>
@@ -240,6 +287,33 @@ export default function SocialPage({
           />
         </div>
       </div>
+
+      {/* Info Box */}
+      {!socialInfoDismissed && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mx-[0px] mt-[15px] mb-[17px]">
+          <div className="flex items-end justify-between gap-4">
+            <p className="text-sm text-blue-800">
+              <strong>ℹ️ Como funciona:</strong> Clique em uma
+              ocorrência para ver todos os relatos relacionados.
+              Você pode ordenar por popularidade, data ou proximidade.
+              No modo "Próximas de você", as ocorrências são ordenadas
+              da mais próxima para a mais distante. Se você foi afetado
+              pelo mesmo evento, adicione seu relato à ocorrência
+              existente ao invés de criar uma nova.
+            </p>
+
+            {user && (
+              <button
+                type="button"
+                onClick={dismissSocialInfo}
+                className="shrink-0 text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline transition-colors"
+              >
+                Dispensar
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Reports Grid */}
       <div
@@ -451,20 +525,6 @@ export default function SocialPage({
         </div>
       )}
 
-      {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mx-[0px] mt-[15px] mb-[17px]">
-
-        <p className="text-sm text-blue-800">
-          <strong>ℹ️ Como funciona:</strong> Clique em uma
-          ocorrência para ver todos os relatos relacionados.
-          Você pode ordenar por popularidade, data ou proximidade.
-          No modo "Próximas de você", as ocorrências são ordenadas
-          da mais próxima para a mais distante. Se você foi afetado
-          pelo mesmo evento, adicione seu relato à ocorrência
-          existente ao invés de criar uma nova.
-        </p>
-
-      </div>
 
     </div>
   );

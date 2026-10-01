@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   MapPin,
   Shield,
@@ -8,6 +9,7 @@ import {
 
 import { ImageWithFallback } from "../components/ImageWithFallback.tsx";
 import type { PageType } from "../App";
+import { awarenessMessages, type AwarenessMessage } from "../data/awarenessMessages";
 
 interface News {
   id: string | number;
@@ -21,26 +23,46 @@ interface News {
 
 interface HomePageProps {
   setCurrentPage: React.Dispatch<React.SetStateAction<PageType>>;
-  getRandomAlertMessage: () => React.ReactNode;
-  getRandomAlertDescription: () => React.ReactNode;
+  getRandomAlertMessage?: () => React.ReactNode;
+  getRandomAlertDescription?: () => React.ReactNode;
   mockNews: any[];
 }
 
+const getRandomMessage = (): AwarenessMessage => {
+  const randomIndex = Math.floor(Math.random() * awarenessMessages.length);
+  return awarenessMessages[randomIndex];
+};
+
 export default function HomePage({
   setCurrentPage,
-  getRandomAlertMessage,
-  getRandomAlertDescription,
   mockNews,
 }: HomePageProps) {
+  // O conjunto inteiro é sorteado uma única vez.
+  // Assim, título, descrição e os 3 dados sempre pertencem à mesma mensagem.
+  const [awarenessMessage] = useState<AwarenessMessage>(() => getRandomMessage());
+
+  const statBorderColor = {
+    red: "border-red-500",
+    orange: "border-orange-500",
+    yellow: "border-yellow-500",
+  };
+
+  const statTextColor = {
+    red: "text-red-600",
+    orange: "text-orange-600",
+    yellow: "text-[#f6a511]",
+  };
+
   return (
     <div>
       {/* Hero principal */}
       <div className="relative overflow-hidden text-white rounded-2xl p-8 mb-8 bg-[#1e8549]">
-
         {/* Formas geométricas */}
         <div className="absolute -top-10 -right-10 w-64 h-64 opacity-30 rounded-tl-full bg-[#45b52b]" />
 
         <div className="absolute -bottom-16 -left-16 w-72 h-72 opacity-40 rounded-br-full bg-[#306746]" />
+
+        <div className="absolute -top-30 left-3/4 -translate-x-15/10 w-68 h-68 bg-green-600 opacity-40 rounded-br-full" />
 
         {/* Conteúdo */}
         <div className="relative z-10">
@@ -55,7 +77,10 @@ export default function HomePage({
 
           <div className="flex gap-4">
             <button
-              onClick={() => setCurrentPage("social")}
+              onClick={() => {
+                setCurrentPage("social");
+                window.scrollTo({ top: 40, behavior: "smooth" });
+              }}
               className="bg-yellow-400 text-black px-5 py-2 rounded-lg font-medium hover:scale-105 transition flex items-center gap-2"
             >
               <MapPin className="w-4 h-4" />
@@ -75,11 +100,12 @@ export default function HomePage({
 
       {/* Alerta */}
       <div className="relative overflow-hidden bg-[#dc2626] text-white rounded-2xl p-8 mb-8">
-
         {/* Formas geométricas */}
-        <div className="absolute -top-12 -right-12 w-64 h-64 bg-orange-400 opacity-30 rounded-bl-full" />
+        <div className="absolute -bottom-4 -right-12 w-58 h-58 bg-orange-400 opacity-30 rounded-bl-full" />
 
         <div className="absolute -bottom-16 -left-16 w-72 h-72 bg-red-900 opacity-40 rounded-tr-full" />
+
+        <div className="absolute -bottom-35 left-3/4 -translate-x-9/10 w-68 h-68 bg-yellow-600 opacity-40 rounded-tr-full" />
 
         {/* Conteúdo */}
         <div className="relative z-10">
@@ -87,12 +113,12 @@ export default function HomePage({
             <AlertTriangle className="w-8 h-8" />
 
             <h2 className="text-2xl font-bold">
-              {getRandomAlertMessage()}
+              {awarenessMessage.title}
             </h2>
           </div>
 
           <p className="text-white/90 mb-6 max-w-xl">
-            {getRandomAlertDescription()}
+            {awarenessMessage.description}
           </p>
 
           <button
@@ -105,39 +131,24 @@ export default function HomePage({
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div
+        className={`grid grid-cols-1 md:grid-cols-${awarenessMessage.stats.length === 2 ? "2" : "3"} gap-6 mb-8 ${awarenessMessage.stats.length === 2 ? "md:max-w-4xl md:mx-auto" : ""
+          }`}
+      >
+        {awarenessMessage.stats.map((stat, index) => (
+          <div
+            key={`${awarenessMessage.title}-${index}`}
+            className={`bg-white p-6 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] border-l-4 bg-[#f2f2f2] ${statBorderColor[stat.color]}`}
+          >
+            <div className={`text-3xl font-bold mb-2 ${statTextColor[stat.color]}`}>
+              {stat.value}
+            </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] border-l-4 border-red-500 bg-[#f2f2f2]">
-          <div className="text-3xl font-bold text-red-600 mb-2">
-            +300%
+            <p className="text-gray-600">
+              {stat.label}
+            </p>
           </div>
-
-          <p className="text-gray-600">
-            Aumento em desastres naturais na última década
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] border-l-4 border-orange-500 bg-[#f2f2f2]">
-          <div className="text-3xl font-bold text-orange-600 mb-2">
-            1.5°C
-          </div>
-
-          <p className="text-gray-600">
-            Aumento da temperatura global desde era
-            pré-industrial
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-[6px_6px_8px_rgba(0,0,0,0.25)] border-l-4 border-yellow-500 bg-[#f2f2f2]">
-          <div className="text-3xl font-bold mb-2 text-[#f6a511]">
-            Milhões
-          </div>
-
-          <p className="text-gray-600">
-            De pessoas afetadas por eventos climáticos
-            extremos anualmente
-          </p>
-        </div>
+        ))}
       </div>
 
       {/* Notícias */}
@@ -169,10 +180,10 @@ export default function HomePage({
                 <div className="flex items-center justify-between mb-3">
                   <span
                     className={`text-xs font-bold px-3 py-1 rounded-full ${news.category === "Crítico"
-                        ? "bg-red-100 text-red-700"
-                        : news.category === "Alerta"
-                          ? "bg-yellow-100 text-[#f6a511]"
-                          : "bg-green-100 text-green-700"
+                      ? "bg-red-100 text-red-700"
+                      : news.category === "Alerta"
+                        ? "bg-yellow-100 text-[#f6a511]"
+                        : "bg-green-100 text-green-700"
                       }`}
                   >
                     {news.category}
@@ -214,7 +225,10 @@ export default function HomePage({
         </p>
 
         <button
-          onClick={() => setCurrentPage("social")}
+          onClick={() => {
+            setCurrentPage("social");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors"
         >
           Relatar Ocorrência

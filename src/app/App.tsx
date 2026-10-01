@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { AppHeader } from "./components/AppHeader";
 import { DecorativeShapes } from "./components/DecorativeShapes";
 import { useAuth } from "../hooks/useAuth";
-import { supabase } from "../lib/supabase";
+import { supabase } from "./lib/supabase";
 import { mockDocuments } from "./data/mockDocuments";
 import { mockNews } from "./data/mockNews";
 import { awarenessMessages } from "./data/awarenessMessages";

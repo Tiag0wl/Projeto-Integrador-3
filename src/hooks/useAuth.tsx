@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { supabase } from '../app/lib/supabase'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
